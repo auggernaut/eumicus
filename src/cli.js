@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { runLearningPipeline, getSessionSummary } from './learning-pipeline.js';
-import { loadMemory, clearSession } from '../modules/memory.js';
+import { loadMemory, clearSession, saveMemory, addConversationLearning } from '../modules/memory.js';
 import { analyzeProgress, getLearningRecommendations } from '../modules/assimilator.js';
 import { isConfigured } from '../modules/openai-client.js';
 
@@ -28,6 +28,7 @@ export async function runCLI() {
           message: 'What would you like to do?',
           choices: [
             { name: '🎯 Start a new learning session', value: 'learn' },
+            { name: '💬 Capture conversation learning', value: 'capture' },
             { name: '📊 View learning progress', value: 'progress' },
             { name: '🧠 View knowledge profile', value: 'profile' },
             { name: '💡 Get learning recommendations', value: 'recommendations' },
@@ -41,6 +42,9 @@ export async function runCLI() {
       switch (action) {
         case 'learn':
           await handleLearningSession();
+          break;
+        case 'capture':
+          await handleConversationCapture();
           break;
         case 'progress':
           await showProgress();
@@ -65,6 +69,83 @@ export async function runCLI() {
       console.error(chalk.red('\n❌ Error:'), error.message);
       console.log(chalk.yellow('Please try again.\n'));
     }
+  }
+}
+
+/**
+ * Handle conversation capture
+ */
+async function handleConversationCapture() {
+  console.log(chalk.blue('\n💬 Capture Conversation Learning\n'));
+  console.log(chalk.gray('Use this to capture insights from conversations, articles, videos, or any learning experience.\n'));
+  
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'topic',
+      message: 'What was the main topic or concept you learned about?',
+      validate: (input) => input.trim().length > 0 || 'Please enter a topic'
+    },
+    {
+      type: 'input',
+      name: 'content',
+      message: 'Describe what you learned (be specific and detailed):',
+      validate: (input) => input.trim().length > 10 || 'Please provide more detail about what you learned'
+    },
+    {
+      type: 'input',
+      name: 'source',
+      message: 'Where did you learn this from? (e.g., "chat conversation", "website", "book", "video")',
+      default: 'conversation'
+    },
+    {
+      type: 'input',
+      name: 'connections',
+      message: 'What related topics or concepts does this connect to? (comma-separated, optional)',
+      default: ''
+    }
+  ]);
+  
+  try {
+    const memory = await loadMemory();
+    
+    // Parse connections
+    const connections = answers.connections
+      .split(',')
+      .map(c => c.trim())
+      .filter(c => c.length > 0);
+    
+    // Add the learning to memory
+    addConversationLearning(
+      memory,
+      answers.topic,
+      answers.content,
+      answers.source,
+      connections
+    );
+    
+    // Save updated memory
+    await saveMemory(memory);
+    
+    console.log(chalk.green('\n✅ Learning captured successfully!'));
+    console.log(chalk.blue(`📊 Total concepts in memory: ${memory.concepts.length}`));
+    console.log(chalk.blue(`📝 Total reflections in memory: ${memory.reflections.length}`));
+    
+    const { captureMore } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'captureMore',
+        message: 'Would you like to capture another learning?',
+        default: false
+      }
+    ]);
+    
+    if (captureMore) {
+      await handleConversationCapture();
+    }
+    
+  } catch (error) {
+    console.error(chalk.red('\n❌ Error capturing learning:'), error.message);
   }
 }
 

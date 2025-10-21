@@ -129,3 +129,36 @@ export function getRecentReflections(memory, limit = 5) {
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, limit);
 }
+
+/**
+ * Add a conversation or learning interaction to memory
+ * @param {Object} memory - Current memory object
+ * @param {string} topic - Main topic discussed
+ * @param {string} content - Key insights or learnings from the conversation
+ * @param {string} source - Where the learning came from (e.g., "chat conversation", "website", "book")
+ * @param {Array} connections - Related concepts or topics
+ */
+export function addConversationLearning(memory, topic, content, source = "conversation", connections = []) {
+  // Add as a concept if it's substantial learning
+  if (content.length > 50) {
+    const conceptId = `conversation-${Date.now()}`;
+    const newConcept = {
+      id: conceptId,
+      name: topic,
+      description: content.substring(0, 200) + (content.length > 200 ? "..." : ""),
+      source: source,
+      category: "conversation-learning",
+      details: content,
+      connections: connections,
+      timestamp: new Date().toISOString()
+    };
+    
+    memory.concepts.push(newConcept);
+  }
+  
+  // Also add as a reflection
+  addReflection(memory, `Learned about ${topic}: ${content}`, topic);
+  
+  // Update last updated timestamp
+  memory.lastUpdated = new Date().toISOString();
+}

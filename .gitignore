@@ -12,8 +12,8 @@ yarn-error.log*
 .env.production.local
 
 # Data files (keep structure but ignore actual data)
-data/memory.json
-data/session.json
+# data/memory.json
+# data/session.json
 
 # Logs
 logs

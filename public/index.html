@@ -27,11 +27,13 @@
             grid-template-columns: 1fr 350px;
             gap: 20px;
             height: calc(100vh - 40px);
+            align-items: start;
         }
 
         .main-content {
             display: flex;
             flex-direction: column;
+            height: 100%;
         }
 
         .sidebar {
@@ -39,8 +41,7 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            height: fit-content;
-            max-height: calc(100vh - 40px);
+            height: 100%;
             overflow-y: auto;
         }
 
@@ -48,6 +49,7 @@
             text-align: center;
             color: white;
             margin-bottom: 20px;
+            flex-shrink: 0;
         }
 
         .header h1 {
@@ -65,12 +67,13 @@
             background: white;
             border-radius: 15px;
             padding: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 0;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-height: 0;
         }
 
         .card:hover {
@@ -81,6 +84,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            min-height: 0;
         }
 
         .chat-messages {
@@ -90,7 +94,7 @@
             background: #f8f9fa;
             border-radius: 10px;
             margin-bottom: 20px;
-            max-height: 500px;
+            min-height: 0;
         }
 
         .message {
@@ -147,6 +151,8 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-shrink: 0;
+            margin-top: auto;
         }
 
         .chat-input {
@@ -190,6 +196,8 @@
 
         .learning-plan {
             margin-bottom: 20px;
+            flex: 1;
+            min-height: 0;
         }
 
         .plan-title {
@@ -249,6 +257,7 @@
             border-radius: 10px;
             margin-bottom: 20px;
             border-left: 4px solid #667eea;
+            flex-shrink: 0;
         }
 
         .current-topic-title {
@@ -450,10 +459,23 @@
             
             .container {
                 padding: 10px;
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto;
+                gap: 10px;
             }
             
             .card {
                 padding: 20px;
+            }
+            
+            .sidebar {
+                height: auto;
+                max-height: 300px;
+                order: 2;
+            }
+            
+            .main-content {
+                order: 1;
             }
         }
     </style>
@@ -496,7 +518,7 @@
         </div>
 
         <div class="sidebar">
-            <div id="sidebar-content">
+            <div id="sidebar-content" style="display: flex; flex-direction: column; height: 100%;">
                 <div class="current-topic">
                     <div class="current-topic-title">Ready to Learn</div>
                     <div class="current-topic-description">Start a learning session to see your personalized plan</div>
@@ -504,7 +526,7 @@
                 
                 <div class="learning-plan">
                     <div class="plan-title">📚 Learning Plan</div>
-                    <div id="plan-items">
+                    <div id="plan-items" style="overflow-y: auto; flex: 1;">
                         <p style="color: #666; font-style: italic;">No plan yet. Start learning to see your personalized curriculum!</p>
                     </div>
                 </div>
