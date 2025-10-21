@@ -33,7 +33,29 @@
       "details": {
         "input_type": "string"
       }
+    },
+    {
+      "timestamp": "2025-10-21T17:05:37.668Z",
+      "type": "content_processing",
+      "agent": "Content Processor",
+      "message": "Starting content analysis",
+      "status": "in_progress",
+      "details": {
+        "input_type": "string"
+      }
+    },
+    {
+      "timestamp": "2025-10-21T17:05:53.295Z",
+      "type": "content_processing",
+      "agent": "Content Processor",
+      "message": "Successfully processed youtube_video: \"The Singularity is Here: AI is Solving Math, Sora Outpaces Chat-GPT & AI is Designing Chips | EP#201\"",
+      "status": "completed",
+      "details": {
+        "content_id": "content_1761066353290",
+        "concepts_extracted": 4,
+        "insights_generated": 3
+      }
     }
   ],
-  "last_updated": "2025-10-21T15:23:35.849Z"
+  "last_updated": "2025-10-21T17:05:53.295Z"
 }

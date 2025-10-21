@@ -128,10 +128,104 @@
       "priority": "low",
       "created_at": "2025-10-21T15:22:12.799Z",
       "last_updated": "2025-10-21T15:22:12.799Z"
+    },
+    {
+      "name": "AI in Mathematics",
+      "description": "Artificial Intelligence is being used to solve complex mathematical problems, potentially surpassing human capabilities in certain areas.",
+      "confidence": 0.9,
+      "category": "AI Application",
+      "connections": [
+        "Introduction to Machine Learning",
+        "Linear Algebra and Statistics"
+      ],
+      "sources": [
+        "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
+      ],
+      "last_reinforced": null,
+      "reinforcement_schedule": "2025-11-04T17:05:53.289Z",
+      "created_from": "youtube_video",
+      "created_at": "2025-10-21T17:05:53.291Z",
+      "last_updated": "2025-10-21T17:05:53.291Z"
+    },
+    {
+      "name": "Sora AI",
+      "description": "Sora is an AI system that reportedly outpaces Chat-GPT in certain tasks, showcasing advancements in AI capabilities.",
+      "confidence": 0.85,
+      "category": "AI Technology",
+      "connections": [
+        "AI Application Development"
+      ],
+      "sources": [
+        "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
+      ],
+      "last_reinforced": null,
+      "reinforcement_schedule": "2025-11-04T17:05:53.289Z",
+      "created_from": "youtube_video",
+      "created_at": "2025-10-21T17:05:53.292Z",
+      "last_updated": "2025-10-21T17:05:53.292Z"
+    },
+    {
+      "name": "AI in Chip Design",
+      "description": "AI technologies are being used to design computer chips, optimizing performance and efficiency beyond traditional methods.",
+      "confidence": 0.9,
+      "category": "AI Application",
+      "connections": [
+        "Material Science Basics"
+      ],
+      "sources": [
+        "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
+      ],
+      "last_reinforced": null,
+      "reinforcement_schedule": "2025-11-04T17:05:53.289Z",
+      "created_from": "youtube_video",
+      "created_at": "2025-10-21T17:05:53.294Z",
+      "last_updated": "2025-10-21T17:05:53.294Z"
+    },
+    {
+      "name": "Technological Singularity",
+      "description": "The concept that AI will eventually surpass human intelligence, leading to unprecedented technological growth.",
+      "confidence": 0.8,
+      "category": "AI Theory",
+      "connections": [
+        "AI Application Development"
+      ],
+      "sources": [
+        "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
+      ],
+      "last_reinforced": null,
+      "reinforcement_schedule": "2025-11-04T17:05:53.289Z",
+      "created_from": "youtube_video",
+      "created_at": "2025-10-21T17:05:53.294Z",
+      "last_updated": "2025-10-21T17:05:53.294Z"
     }
   ],
-  "content_items": [],
+  "content_items": [
+    {
+      "type": "youtube_video",
+      "url": "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s",
+      "title": "The Singularity is Here: AI is Solving Math, Sora Outpaces Chat-GPT & AI is Designing Chips | EP#201",
+      "content": "YouTube video: The Singularity is Here: AI is Solving Math, Sora Outpaces Chat-GPT & AI is Designing Chips | EP#201",
+      "key_concepts": [
+        "AI in Mathematics",
+        "Sora AI",
+        "AI in Chip Design",
+        "Technological Singularity"
+      ],
+      "insights": [
+        "AI is increasingly capable of solving complex mathematical problems, indicating a shift in how mathematical research might be conducted.",
+        "The development of AI systems like Sora suggests rapid advancements in AI capabilities, potentially outpacing existing models like Chat-GPT.",
+        "AI's role in chip design highlights its potential to revolutionize hardware development, leading to more efficient and powerful computing systems."
+      ],
+      "key_takeaways": [
+        "AI is not only advancing in software applications but is also making significant strides in hardware design.",
+        "The concept of the technological singularity is becoming more relevant as AI systems demonstrate capabilities that challenge human intelligence.",
+        "The competitive landscape of AI development is evolving, with new systems like Sora pushing the boundaries of what is possible."
+      ],
+      "processed_date": "2025-10-21T17:05:53.290Z",
+      "id": "content_1761066353290"
+    }
+  ],
   "reinforcement_sessions": [],
   "exploration_suggestions": [],
-  "last_updated": "2025-10-21T15:22:12.800Z"
+  "last_updated": "2025-10-21T17:05:53.294Z"
 }

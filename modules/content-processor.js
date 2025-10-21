@@ -1,7 +1,14 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
-const fetch = require('node-fetch');
 const OpenAIClient = require('./openai-client');
+
+// Use built-in fetch for Node.js 18+ or fallback to node-fetch
+let fetch;
+try {
+  fetch = globalThis.fetch;
+} catch (error) {
+  fetch = require('node-fetch');
+}
 
 class ContentProcessor {
   constructor(openaiClient, knowledgeGraphManager) {
@@ -13,7 +20,17 @@ class ContentProcessor {
   async initialize() {
     this.browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor'
+      ]
     });
   }
 
@@ -101,66 +118,124 @@ class ContentProcessor {
     }
   }
 
+  isYouTubeUrl(url) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
+    } catch {
+      return false;
+    }
+  }
+
   async processUrl(url) {
     console.log(`🌐 Processing URL: ${url}`);
     
-    try {
-      const page = await this.browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-      
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-      
-      const content = await page.evaluate(() => {
-        // Remove script and style elements
-        const scripts = document.querySelectorAll('script, style, nav, header, footer, aside');
-        scripts.forEach(el => el.remove());
-        
-        // Get main content
-        const title = document.title;
-        const mainContent = document.querySelector('main, article, .content, .post, .entry') || document.body;
-        const text = mainContent.innerText || mainContent.textContent || '';
-        
-        return {
-          title,
-          content: text.trim(),
-          url: window.location.href
-        };
-      });
-
-      await page.close();
-
-      return {
-        type: 'webpage',
-        url: content.url,
-        title: content.title,
-        content: content.content
-      };
-
-    } catch (error) {
-      console.error('Error processing URL:', error);
-      
-      // Fallback to simple fetch
+    // Check if it's a YouTube URL and use specialized processing
+    if (this.isYouTubeUrl(url)) {
+      return await this.processYouTubeVideo(url);
+    }
+    
+    let page = null;
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    while (retryCount < maxRetries) {
       try {
-        const response = await fetch(url);
-        const html = await response.text();
-        const $ = cheerio.load(html);
+        page = await this.browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
-        // Remove script and style elements
-        $('script, style, nav, header, footer, aside').remove();
+        // Add extra headers to avoid detection
+        await page.setExtraHTTPHeaders({
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none'
+        });
         
-        const title = $('title').text() || 'Untitled';
-        const content = $('body').text().trim();
+        // Set viewport
+        await page.setViewport({ width: 1920, height: 1080 });
         
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        
+        // Wait for content to load
+        await page.waitForTimeout(2000);
+        
+        const content = await page.evaluate(() => {
+          // Remove script and style elements
+          const scripts = document.querySelectorAll('script, style, nav, header, footer, aside');
+          scripts.forEach(el => el.remove());
+          
+          // Get main content
+          const title = document.title;
+          const mainContent = document.querySelector('main, article, .content, .post, .entry') || document.body;
+          const text = mainContent.innerText || mainContent.textContent || '';
+          
+          return {
+            title,
+            content: text.trim(),
+            url: window.location.href
+          };
+        });
+
+        await page.close();
+        page = null;
+
         return {
           type: 'webpage',
-          url,
-          title,
-          content
+          url: content.url,
+          title: content.title,
+          content: content.content
         };
-      } catch (fetchError) {
-        console.error('Fallback fetch also failed:', fetchError);
-        throw new Error(`Unable to process URL: ${url}`);
+
+      } catch (error) {
+        console.error(`Error processing URL (attempt ${retryCount + 1}):`, error.message);
+        
+        if (page) {
+          try {
+            await page.close();
+          } catch (closeError) {
+            console.log('Error closing page:', closeError.message);
+          }
+          page = null;
+        }
+        
+        retryCount++;
+        
+        if (retryCount >= maxRetries) {
+          console.error('All retries failed for URL processing:', error);
+          break;
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
       }
+    }
+    
+    // Fallback to simple fetch if all retries failed
+    try {
+      console.log('Attempting fallback fetch for URL:', url);
+      const response = await fetch(url);
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      
+      // Remove script and style elements
+      $('script, style, nav, header, footer, aside').remove();
+      
+      const title = $('title').text() || 'Untitled';
+      const content = $('body').text().trim();
+      
+      return {
+        type: 'webpage',
+        url,
+        title,
+        content
+      };
+    } catch (fetchError) {
+      console.error('Fallback fetch also failed:', fetchError);
+      throw new Error(`Unable to process URL: ${url}`);
     }
   }
 
@@ -226,50 +301,169 @@ class ContentProcessor {
   async processYouTubeVideo(url) {
     console.log(`🎥 Processing YouTube video: ${url}`);
     
-    try {
-      const page = await this.browser.newPage();
-      await page.goto(url, { waitUntil: 'networkidle2' });
-      
-      // Extract video title
-      const title = await page.evaluate(() => {
-        return document.querySelector('h1.ytd-video-primary-info-renderer')?.textContent || 
-               document.title.replace(' - YouTube', '');
-      });
-
-      // Try to get transcript if available
-      let transcript = '';
+    let page = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
       try {
-        // Click on transcript button if available
-        const transcriptButton = await page.$('button[aria-label*="transcript"], button[aria-label*="Transcript"]');
-        if (transcriptButton) {
-          await transcriptButton.click();
-          await page.waitForTimeout(2000);
+        page = await this.browser.newPage();
+        
+        // Set realistic user agent and headers
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await page.setExtraHTTPHeaders({
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none'
+        });
+        
+        // Set viewport to avoid mobile detection
+        await page.setViewport({ width: 1920, height: 1080 });
+        
+        // Navigate with longer timeout and more lenient wait conditions
+        await page.goto(url, { 
+          waitUntil: 'domcontentloaded', 
+          timeout: 60000 
+        });
+        
+        // Wait a bit for dynamic content to load
+        await page.waitForTimeout(3000);
+        
+        // Extract video title with multiple selectors
+        const title = await page.evaluate(() => {
+          const selectors = [
+            'h1.ytd-video-primary-info-renderer',
+            'h1.title.style-scope.ytd-video-primary-info-renderer',
+            'h1[class*="title"]',
+            'h1'
+          ];
           
-          transcript = await page.evaluate(() => {
-            const transcriptContainer = document.querySelector('[data-testid="transcript"], .ytd-transcript-segment-renderer');
-            if (transcriptContainer) {
-              return transcriptContainer.innerText || transcriptContainer.textContent || '';
+          for (const selector of selectors) {
+            const element = document.querySelector(selector);
+            if (element && element.textContent.trim()) {
+              return element.textContent.trim();
+            }
+          }
+          
+          // Fallback to document title
+          return document.title.replace(' - YouTube', '').trim();
+        });
+
+        // Try to get transcript if available
+        let transcript = '';
+        try {
+          // Look for transcript button with multiple selectors
+          const transcriptSelectors = [
+            'button[aria-label*="transcript" i]',
+            'button[aria-label*="Transcript"]',
+            'button[title*="transcript" i]',
+            'button[title*="Transcript"]',
+            '[data-testid="transcript-button"]',
+            'ytd-transcript-segment-renderer'
+          ];
+          
+          let transcriptButton = null;
+          for (const selector of transcriptSelectors) {
+            transcriptButton = await page.$(selector);
+            if (transcriptButton) break;
+          }
+          
+          if (transcriptButton) {
+            await transcriptButton.click();
+            await page.waitForTimeout(3000);
+            
+            transcript = await page.evaluate(() => {
+              const transcriptSelectors = [
+                '[data-testid="transcript"]',
+                '.ytd-transcript-segment-renderer',
+                '.ytd-transcript-body-renderer',
+                '[class*="transcript"]'
+              ];
+              
+              for (const selector of transcriptSelectors) {
+                const container = document.querySelector(selector);
+                if (container && container.innerText) {
+                  return container.innerText.trim();
+                }
+              }
+              return '';
+            });
+          }
+        } catch (transcriptError) {
+          console.log('Could not extract transcript:', transcriptError.message);
+        }
+
+        // Get video description as fallback content
+        let description = '';
+        try {
+          description = await page.evaluate(() => {
+            const descSelectors = [
+              '#description-text',
+              '.ytd-video-secondary-info-renderer #description-text',
+              '[id*="description"]'
+            ];
+            
+            for (const selector of descSelectors) {
+              const element = document.querySelector(selector);
+              if (element && element.textContent.trim()) {
+                return element.textContent.trim();
+              }
             }
             return '';
           });
+        } catch (descError) {
+          console.log('Could not extract description:', descError.message);
         }
-      } catch (transcriptError) {
-        console.log('Could not extract transcript:', transcriptError.message);
+
+        await page.close();
+        page = null;
+
+        const content = transcript || description || `YouTube video: ${title}`;
+
+        return {
+          type: 'youtube_video',
+          url,
+          title,
+          content,
+          has_transcript: !!transcript,
+          has_description: !!description
+        };
+
+      } catch (error) {
+        console.error(`Error processing YouTube video (attempt ${retryCount + 1}):`, error.message);
+        
+        if (page) {
+          try {
+            await page.close();
+          } catch (closeError) {
+            console.log('Error closing page:', closeError.message);
+          }
+          page = null;
+        }
+        
+        retryCount++;
+        
+        if (retryCount >= maxRetries) {
+          // Final fallback - return basic video info
+          console.log('All retries failed, returning basic video info');
+          return {
+            type: 'youtube_video',
+            url,
+            title: 'YouTube Video (Title extraction failed)',
+            content: `YouTube video content could not be extracted from: ${url}`,
+            has_transcript: false,
+            has_description: false,
+            error: error.message
+          };
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
       }
-
-      await page.close();
-
-      return {
-        type: 'youtube_video',
-        url,
-        title,
-        content: transcript || `YouTube video: ${title}`,
-        has_transcript: !!transcript
-      };
-
-    } catch (error) {
-      console.error('Error processing YouTube video:', error);
-      throw error;
     }
   }
 
