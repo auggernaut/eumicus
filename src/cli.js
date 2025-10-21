@@ -4,6 +4,7 @@ import { runLearningPipeline, getSessionSummary } from './learning-pipeline.js';
 import { loadMemory, clearSession, saveMemory, addConversationLearning } from '../modules/memory.js';
 import { analyzeProgress, getLearningRecommendations } from '../modules/assimilator.js';
 import { isConfigured } from '../modules/openai-client.js';
+import { startChatInterface } from './chat-interface.js';
 
 /**
  * Main CLI interface for Eumicus
@@ -28,7 +29,8 @@ export async function runCLI() {
           message: 'What would you like to do?',
           choices: [
             { name: '🎯 Start a new learning session', value: 'learn' },
-            { name: '💬 Capture conversation learning', value: 'capture' },
+            { name: '💬 Start learning chat (auto-capture)', value: 'chat' },
+            { name: '📝 Capture conversation learning', value: 'capture' },
             { name: '📊 View learning progress', value: 'progress' },
             { name: '🧠 View knowledge profile', value: 'profile' },
             { name: '💡 Get learning recommendations', value: 'recommendations' },
@@ -42,6 +44,9 @@ export async function runCLI() {
       switch (action) {
         case 'learn':
           await handleLearningSession();
+          break;
+        case 'chat':
+          await handleLearningChat();
           break;
         case 'capture':
           await handleConversationCapture();
@@ -69,6 +74,20 @@ export async function runCLI() {
       console.error(chalk.red('\n❌ Error:'), error.message);
       console.log(chalk.yellow('Please try again.\n'));
     }
+  }
+}
+
+/**
+ * Handle learning chat with auto-capture
+ */
+async function handleLearningChat() {
+  console.log(chalk.blue('\n💬 Starting Learning Chat\n'));
+  console.log(chalk.gray('This will start an interactive chat where learnings are automatically captured.\n'));
+  
+  try {
+    await startChatInterface();
+  } catch (error) {
+    console.error(chalk.red('\n❌ Error in learning chat:'), error.message);
   }
 }
 
