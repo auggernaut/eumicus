@@ -1,0 +1,336 @@
+Eumicus is an AI-assisted self-guided knowledge reinforcement tool that helps you build and maintain a comprehensive understanding of your interests, goals, and learning journey.
+
+🧠 Product Requirements Document (PRD)
+
+MVP: Local AI-Assisted Knowledge Reinforcement & Memory Building System
+
+Date: October 2025
+Owner: [Your Name / Team]
+Version: 1.0 (Knowledge Reinforcement MVP)
+
+⸻
+
+1. 🎯 Overview
+
+This MVP is a local-first AI knowledge reinforcement system that builds a comprehensive understanding of what you know, your goals, and your learning journey using a persistent knowledge graph stored in local JSON files.
+
+It's designed to run entirely on your laptop with minimal dependencies — no authentication, no database, no hosting — just a lightweight web UI and OpenAI API calls.
+
+The goal is to prove that an AI can:
+	•	Build a deep understanding of your knowledge, goals, and interests through probing conversations
+	•	Process daily content (articles, videos, podcasts) and integrate it into your knowledge graph
+	•	Reinforce existing knowledge through targeted questions and spaced repetition
+	•	Suggest new areas to explore based on your knowledge gaps and interests
+	•	Maintain a growing, interconnected understanding of your learning journey
+
+⸻
+
+2. 💡 Problem
+
+Most learning tools are either too passive (just storing bookmarks) or too rigid (fixed curricula).
+
+Learners need a system that:
+	•	Understands their unique knowledge landscape and goals
+	•	Actively helps them retain and connect what they've learned
+	•	Processes their daily content consumption into meaningful knowledge
+	•	Continuously suggests new directions based on their interests and gaps
+	•	Builds a comprehensive, interconnected understanding over time
+
+⸻
+
+3. 🌱 Solution Summary
+
+A local app that runs this continuous loop:
+	1.	Initial deep-dive conversation to understand user's goals, interests, and current knowledge
+	2.	Daily content ingestion (articles, videos, podcasts) with AI processing and integration
+	3.	Knowledge reinforcement through targeted questions and spaced repetition
+	4.	Exploration suggestions based on knowledge gaps and interests
+	5.	Continuous knowledge graph building and relationship mapping
+	6.	Regular reflection and goal alignment updates
+
+Everything runs locally with persistent knowledge graph storage.
+
+⸻
+
+4. ⚙️ Architecture Overview
+
+High-Level Flow
+
+Daily content + user goals
+  ↓
+knowledge-graph.json → content-processor → knowledge-reinforcer → exploration-suggester → update graph
+
+Each step is a small, testable function that:
+	•	Takes the current context (content, knowledge graph, user goals)
+	•	Calls OpenAI's API with tailored prompts for processing
+	•	Returns structured knowledge updates
+	•	Logs insights and connections to the console
+
+No frameworks, queues, or multi-agent runtime — just sequential execution with persistent state.
+
+⸻
+
+5. 🧱 Feature Scope
+
+Module	Purpose	Implementation
+Knowledge Graph Manager	Reads & writes knowledge-graph.json	Node fs module
+User Profiler	Deep-dive conversation to understand goals/interests	LLM conversation + structured output
+Content Processor	Processes daily content (articles, videos, podcasts)	LLM analysis + knowledge extraction
+Knowledge Reinforcer	Generates spaced repetition questions	LLM prompt + JSON output
+Exploration Suggester	Identifies knowledge gaps and suggests new areas	LLM analysis + recommendation engine
+Connection Mapper	Finds relationships between concepts	LLM relationship analysis
+Reflection Engine	Guides user to connect new insights to existing knowledge	LLM conversation
+Graph Visualizer	Shows knowledge connections and growth	Interactive web visualization (D3.js/vis.js)
+Activity Feed System	Real-time display of AI background processes	WebSocket streaming + activity logging
+Chat Interface	Conversational UI for user interactions	Web-based chat with real-time updates
+
+⸻
+
+6. 🧭 User Flow
+
+Initial Setup:
+	1.	Start the program → Web interface opens in browser
+	2.	User sees empty Chat tab and Graph tab, with Activity Feed on the right
+	3.	Deep-dive conversation in Chat tab about goals, interests, current knowledge
+	4.	Activity Feed shows AI agents working: "User Profiler analyzing responses..."
+	5.	AI builds initial knowledge graph from conversation
+	6.	Graph tab updates with initial knowledge landscape visualization
+	7.	Activity Feed shows: "Knowledge Graph initialized with 15 concepts"
+
+Daily Usage:
+	1.	User submits daily content (URLs, text, notes) in Chat tab
+	2.	Activity Feed shows: "Content Processor starting analysis..."
+	3.	Content Processor extracts key concepts and insights
+	4.	Activity Feed shows: "Added 3 new concepts to knowledge graph"
+	5.	Knowledge Reinforcer asks targeted questions about existing knowledge
+	6.	Activity Feed shows: "Generated 5 reinforcement questions for 'machine learning'"
+	7.	Exploration Suggester suggests new areas to explore
+	8.	Activity Feed shows: "Found 2 knowledge gaps, suggesting 'computer vision'"
+	9.	Connection Mapper finds relationships between new and existing knowledge
+	10.	Activity Feed shows: "Connected 'neural networks' to 'deep learning'"
+	11.	Knowledge graph updates with new connections and insights
+	12.	Graph tab shows real-time updates with new nodes and connections
+	13.	User sees updated knowledge landscape and growth in both tabs
+
+⸻
+
+7. 🧠 Data Model
+
+knowledge-graph.json
+
+{
+  "user_profile": {
+    "goals": ["become a better data scientist", "understand AI ethics"],
+    "interests": ["machine learning", "philosophy", "psychology"],
+    "learning_style": "visual + hands-on",
+    "time_commitment": "30 minutes daily"
+  },
+  "concepts": [
+    {
+      "name": "neural networks",
+      "confidence": 0.8,
+      "last_reinforced": "2025-10-20",
+      "connections": ["deep learning", "backpropagation", "gradient descent"],
+      "sources": ["article_1", "video_2"],
+      "reinforcement_schedule": "2025-10-27"
+    }
+  ],
+  "content_items": [
+    {
+      "id": "article_1",
+      "type": "article",
+      "url": "https://example.com/neural-nets",
+      "title": "Understanding Neural Networks",
+      "processed_date": "2025-10-20",
+      "key_concepts": ["neural networks", "backpropagation"],
+      "insights": ["Neural networks are inspired by biological neurons"]
+    }
+  ],
+  "reinforcement_sessions": [
+    {
+      "date": "2025-10-20",
+      "concepts_reviewed": ["neural networks", "gradient descent"],
+      "performance": 0.85,
+      "insights": ["I understand the math better now"]
+    }
+  ],
+  "exploration_suggestions": [
+    {
+      "area": "computer vision",
+      "reason": "builds on your neural network knowledge",
+      "priority": "high",
+      "suggested_resources": ["course_1", "article_2"]
+    }
+  ]
+}
+
+activity-log.json (real-time activity feed)
+
+{
+  "activities": [
+    {
+      "timestamp": "2025-10-20T14:30:00Z",
+      "type": "content_processing",
+      "agent": "Content Processor",
+      "message": "Processing YouTube video: 'Introduction to Neural Networks'",
+      "status": "in_progress",
+      "details": {
+        "url": "https://youtube.com/watch?v=example",
+        "extracted_concepts": ["neural networks", "backpropagation"]
+      }
+    },
+    {
+      "timestamp": "2025-10-20T14:32:15Z",
+      "type": "graph_update",
+      "agent": "Connection Mapper",
+      "message": "Added new concept: 'neural networks' to knowledge graph",
+      "status": "completed",
+      "details": {
+        "concept": "neural networks",
+        "confidence": 0.7,
+        "connections": ["deep learning", "machine learning"]
+      }
+    },
+    {
+      "timestamp": "2025-10-20T14:33:00Z",
+      "type": "reinforcement",
+      "agent": "Knowledge Reinforcer",
+      "message": "Generated 3 reinforcement questions for 'gradient descent'",
+      "status": "completed",
+      "details": {
+        "concept": "gradient descent",
+        "questions_generated": 3,
+        "difficulty": "intermediate"
+      }
+    }
+  ]
+}
+
+⸻
+
+8. 💻 Tech Stack
+
+Layer	Technology
+Runtime	Node.js (18+)
+AI Model	OpenAI GPT-4o or GPT-4-turbo
+Interface	Web-based interface with Express.js server
+Frontend	HTML/CSS/JavaScript with real-time updates (WebSockets or Server-Sent Events)
+File I/O	Node fs
+Persistence	Local JSON files (knowledge-graph.json, content-cache.json, activity-log.json)
+Content Processing	YouTube API, web scraping (puppeteer), RSS feeds
+Graph Visualization	D3.js or vis.js for interactive knowledge graph
+Activity Feed	Real-time activity streaming with WebSocket connections
+Logging	Console output + detailed learning logs + activity feed
+
+⸻
+
+9. 🔁 Execution Pipeline (Pseudocode)
+
+// Initial Setup
+async function initialSetup() {
+  const profile = await deepDiveConversation();
+  const initialGraph = await buildInitialKnowledgeGraph(profile);
+  await saveKnowledgeGraph(initialGraph);
+  console.log("Knowledge graph initialized!");
+}
+
+// Daily Content Processing
+async function processDailyContent() {
+  const content = await getUserContent(); // URLs, text, notes
+  const processedContent = await processContent(content);
+  const newConcepts = await extractConcepts(processedContent);
+  const connections = await findConnections(newConcepts, existingGraph);
+  await updateKnowledgeGraph(newConcepts, connections);
+}
+
+// Knowledge Reinforcement
+async function reinforceKnowledge() {
+  const conceptsToReview = await getConceptsForReview();
+  const questions = await generateReinforcementQuestions(conceptsToReview);
+  const answers = await getUserAnswers(questions);
+  const insights = await analyzeAnswers(answers);
+  await updateConceptConfidence(insights);
+}
+
+// Exploration Suggestions
+async function suggestExplorations() {
+  const gaps = await identifyKnowledgeGaps();
+  const interests = await getUserInterests();
+  const suggestions = await generateExplorationSuggestions(gaps, interests);
+  await presentSuggestions(suggestions);
+}
+
+⸻
+
+10. 🎨 User Interface Design
+
+**Web Interface Layout:**
+	•	**Left Pane (3/4 width)**: Main interaction area with two tabs
+		•	**Chat Tab**: Conversational interface for user interactions
+			•	Deep-dive conversations about goals and interests
+			•	Content submission (URLs, text, notes)
+			•	Reinforcement question answering
+			•	Exploration suggestion discussions
+		•	**Graph Tab**: Interactive knowledge graph visualization
+			•	Visual representation of concepts and connections
+			•	Clickable nodes showing concept details
+			•	Real-time updates as new knowledge is added
+			•	Filtering and search capabilities
+	•	**Right Pane (1/4 width)**: AI Activity Feed
+		•	Real-time display of background AI processes
+		•	Shows when agents are engaging (Content Processor, Knowledge Reinforcer, etc.)
+		•	Displays new nodes being added to the graph
+		•	Shows concept connections being discovered
+		•	Activity timeline with timestamps
+		•	Progress indicators for long-running processes
+
+⸻
+
+11. 📊 Success Criteria
+
+Metric	Description	Target
+Knowledge Graph Growth	New concepts added weekly	≥ 5 concepts
+Content Processing	Daily content successfully integrated	≥ 80%
+Reinforcement Engagement	User completes reinforcement sessions	≥ 70%
+Exploration Adoption	User follows exploration suggestions	≥ 40%
+Knowledge Connections	New relationships discovered	≥ 3 per week
+User Satisfaction	Positive feedback on learning experience	≥ 4.0/5.0
+Average Cost	<$0.50 per day (OpenAI API)	✔
+Latency	<5s per LLM call	✔
+
+⸻
+
+12. 🔒 Constraints & Risks
+
+	•	Local-only persistence: knowledge-graph.json can be deleted or overwritten easily
+	•	No multi-user support: Single local learner only
+	•	Content processing limitations: Some content may not be accessible or processable
+	•	LLM variability: Knowledge extraction quality depends on model output
+	•	No sandboxing: The app trusts the LLM outputs (mitigate with safe JSON parsing)
+	•	Privacy concerns: All content and knowledge stored locally
+
+⸻
+
+13. 🚀 Roadmap After MVP
+
+Version	Goal	Additions
+v1.1	Enhanced content processing	YouTube transcript extraction, PDF processing
+v1.2	Advanced knowledge graph	Concept relationship strength, learning paths
+v1.3	Spaced repetition engine	Intelligent reinforcement scheduling
+v2.0	Social learning	Share knowledge graphs, collaborative learning
+v2.1	Mobile companion	Mobile app for content capture and quick reinforcement
+
+⸻
+
+14. ✨ Product Philosophy
+
+This MVP exists to prove one thing:
+
+AI can be a true learning companion that grows with you.
+
+By building a comprehensive understanding of your knowledge, goals, and interests, we create a system that doesn't just store information but actively helps you retain, connect, and expand your understanding.
+
+"The real measure of learning isn't consumption — it's connection and reinforcement."
+
+⸻
+

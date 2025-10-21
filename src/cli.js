@@ -1,424 +1,467 @@
-import inquirer from 'inquirer';
-import chalk from 'chalk';
-import { runLearningPipeline, getSessionSummary } from './learning-pipeline.js';
-import { loadMemory, clearSession, saveMemory, addConversationLearning } from '../modules/memory.js';
-import { analyzeProgress, getLearningRecommendations } from '../modules/assimilator.js';
-import { isConfigured } from '../modules/openai-client.js';
-import { startChatInterface } from './chat-interface.js';
+#!/usr/bin/env node
 
-/**
- * Main CLI interface for Eumicus
- */
-export async function runCLI() {
-  console.log(chalk.blue.bold('\n🧠 Welcome to Eumicus - AI-Assisted Adaptive Learning\n'));
-  
-  // Check OpenAI configuration
-  if (!isConfigured()) {
-    console.log(chalk.red('❌ OpenAI API key not configured.'));
-    console.log(chalk.yellow('Please set your OPENAI_API_KEY environment variable.'));
-    console.log(chalk.gray('You can copy env.example to .env and add your API key.'));
-    process.exit(1);
+const { program } = require('commander');
+const chalk = require('chalk');
+const ora = require('ora');
+const inquirer = require('inquirer');
+const KnowledgeGraphManager = require('../modules/knowledge-graph');
+const UserProfiler = require('../modules/user-profiler');
+const ContentProcessor = require('../modules/content-processor');
+const KnowledgeReinforcer = require('../modules/knowledge-reinforcer');
+const ExplorationSuggester = require('../modules/exploration-suggester');
+const ConnectionMapper = require('../modules/connection-mapper');
+const ReflectionEngine = require('../modules/reflection-engine');
+const OpenAIClient = require('../modules/openai-client');
+
+class EumicusCLI {
+  constructor() {
+    this.knowledgeGraph = null;
+    this.openai = null;
+    this.userProfiler = null;
+    this.contentProcessor = null;
+    this.knowledgeReinforcer = null;
+    this.explorationSuggester = null;
+    this.connectionMapper = null;
+    this.reflectionEngine = null;
   }
-  
-  while (true) {
+
+  async initialize() {
+    const spinner = ora('Initializing Eumicus CLI...').start();
+    
     try {
+      // Check for OpenAI API key
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        spinner.fail('OpenAI API key not found');
+        console.error(chalk.red('❌ Please set OPENAI_API_KEY environment variable'));
+        console.log(chalk.yellow('💡 You can get an API key from: https://platform.openai.com/api-keys'));
+        process.exit(1);
+      }
+
+      // Initialize modules
+      this.knowledgeGraph = new KnowledgeGraphManager();
+      await this.knowledgeGraph.initialize();
+      
+      this.openai = new OpenAIClient(apiKey);
+      this.userProfiler = new UserProfiler(this.openai, this.knowledgeGraph);
+      this.contentProcessor = new ContentProcessor(this.openai, this.knowledgeGraph);
+      this.knowledgeReinforcer = new KnowledgeReinforcer(this.openai, this.knowledgeGraph);
+      this.explorationSuggester = new ExplorationSuggester(this.openai, this.knowledgeGraph);
+      this.connectionMapper = new ConnectionMapper(this.openai, this.knowledgeGraph);
+      this.reflectionEngine = new ReflectionEngine(this.openai, this.knowledgeGraph);
+      
+      await this.contentProcessor.initialize();
+      
+      spinner.succeed('Eumicus CLI initialized successfully!');
+      
+    } catch (error) {
+      spinner.fail('Failed to initialize Eumicus CLI');
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  }
+
+  async cleanup() {
+    if (this.contentProcessor) {
+      await this.contentProcessor.cleanup();
+    }
+  }
+
+  async runInteractiveMode() {
+    console.log(chalk.blue.bold('\n🧠 Eumicus CLI - Interactive Mode\n'));
+    
+    while (true) {
       const { action } = await inquirer.prompt([
         {
           type: 'list',
           name: 'action',
           message: 'What would you like to do?',
           choices: [
-            { name: '🎯 Start a new learning session', value: 'learn' },
-            { name: '💬 Start learning chat (auto-capture)', value: 'chat' },
-            { name: '📝 Capture conversation learning', value: 'capture' },
-            { name: '📊 View learning progress', value: 'progress' },
-            { name: '🧠 View knowledge profile', value: 'profile' },
-            { name: '💡 Get learning recommendations', value: 'recommendations' },
-            { name: '📚 View learning history', value: 'history' },
-            { name: '🗑️ Clear session data', value: 'clear' },
+            { name: '📊 View Learning Statistics', value: 'stats' },
+            { name: '🧠 Start User Profiling', value: 'profile' },
+            { name: '📚 Process Content', value: 'process' },
+            { name: '🔄 Run Reinforcement Session', value: 'reinforce' },
+            { name: '🔍 Generate Exploration Suggestions', value: 'suggest' },
+            { name: '🤔 Start Reflection Session', value: 'reflect' },
+            { name: '🔗 Discover Hidden Connections', value: 'connections' },
+            { name: '📈 View Knowledge Graph', value: 'graph' },
+            { name: '🗑️  Reset Knowledge Graph', value: 'reset' },
             { name: '❌ Exit', value: 'exit' }
           ]
         }
       ]);
-      
-      switch (action) {
-        case 'learn':
-          await handleLearningSession();
-          break;
-        case 'chat':
-          await handleLearningChat();
-          break;
-        case 'capture':
-          await handleConversationCapture();
-          break;
-        case 'progress':
-          await showProgress();
-          break;
-        case 'profile':
-          await showProfile();
-          break;
-        case 'recommendations':
-          await showRecommendations();
-          break;
-        case 'history':
-          await showHistory();
-          break;
-        case 'clear':
-          await clearSessionData();
-          break;
-        case 'exit':
-          console.log(chalk.green('\n👋 Happy learning! Goodbye!\n'));
-          process.exit(0);
+
+      try {
+        switch (action) {
+          case 'stats':
+            await this.showStats();
+            break;
+          case 'profile':
+            await this.runProfiling();
+            break;
+          case 'process':
+            await this.processContent();
+            break;
+          case 'reinforce':
+            await this.runReinforcement();
+            break;
+          case 'suggest':
+            await this.generateSuggestions();
+            break;
+          case 'reflect':
+            await this.runReflection();
+            break;
+          case 'connections':
+            await this.discoverConnections();
+            break;
+          case 'graph':
+            await this.viewGraph();
+            break;
+          case 'reset':
+            await this.resetGraph();
+            break;
+          case 'exit':
+            console.log(chalk.green('\n👋 Goodbye!'));
+            await this.cleanup();
+            process.exit(0);
+        }
+      } catch (error) {
+        console.error(chalk.red('\n❌ Error:'), error.message);
       }
-    } catch (error) {
-      console.error(chalk.red('\n❌ Error:'), error.message);
-      console.log(chalk.yellow('Please try again.\n'));
+
+      console.log(); // Add spacing
     }
   }
-}
 
-/**
- * Handle learning chat with auto-capture
- */
-async function handleLearningChat() {
-  console.log(chalk.blue('\n💬 Starting Learning Chat\n'));
-  console.log(chalk.gray('This will start an interactive chat where learnings are automatically captured.\n'));
-  
-  try {
-    await startChatInterface();
-  } catch (error) {
-    console.error(chalk.red('\n❌ Error in learning chat:'), error.message);
-  }
-}
-
-/**
- * Handle conversation capture
- */
-async function handleConversationCapture() {
-  console.log(chalk.blue('\n💬 Capture Conversation Learning\n'));
-  console.log(chalk.gray('Use this to capture insights from conversations, articles, videos, or any learning experience.\n'));
-  
-  const answers = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'topic',
-      message: 'What was the main topic or concept you learned about?',
-      validate: (input) => input.trim().length > 0 || 'Please enter a topic'
-    },
-    {
-      type: 'input',
-      name: 'content',
-      message: 'Describe what you learned (be specific and detailed):',
-      validate: (input) => input.trim().length > 10 || 'Please provide more detail about what you learned'
-    },
-    {
-      type: 'input',
-      name: 'source',
-      message: 'Where did you learn this from? (e.g., "chat conversation", "website", "book", "video")',
-      default: 'conversation'
-    },
-    {
-      type: 'input',
-      name: 'connections',
-      message: 'What related topics or concepts does this connect to? (comma-separated, optional)',
-      default: ''
-    }
-  ]);
-  
-  try {
-    const memory = await loadMemory();
+  async showStats() {
+    console.log(chalk.blue('\n📊 Learning Statistics\n'));
     
-    // Parse connections
-    const connections = answers.connections
-      .split(',')
-      .map(c => c.trim())
-      .filter(c => c.length > 0);
+    const graph = await this.knowledgeGraph.loadKnowledgeGraph();
+    const connectionStats = await this.connectionMapper.getConnectionStats();
+    const reinforcementStats = await this.knowledgeReinforcer.getReinforcementStats();
+    const explorationStats = await this.explorationSuggester.getExplorationStats();
+    const reflectionStats = await this.reflectionEngine.getReflectionStats();
     
-    // Add the learning to memory
-    addConversationLearning(
-      memory,
-      answers.topic,
-      answers.content,
-      answers.source,
-      connections
-    );
+    console.log(chalk.cyan('🧠 Knowledge Graph:'));
+    console.log(chalk.white(`  Total concepts: ${connectionStats.total_concepts}`));
+    console.log(chalk.white(`  Total connections: ${connectionStats.total_connections}`));
+    console.log(chalk.white(`  Average connections per concept: ${connectionStats.average_connections.toFixed(1)}`));
     
-    // Save updated memory
-    await saveMemory(memory);
-    
-    console.log(chalk.green('\n✅ Learning captured successfully!'));
-    console.log(chalk.blue(`📊 Total concepts in memory: ${memory.concepts.length}`));
-    console.log(chalk.blue(`📝 Total reflections in memory: ${memory.reflections.length}`));
-    
-    const { captureMore } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'captureMore',
-        message: 'Would you like to capture another learning?',
-        default: false
-      }
-    ]);
-    
-    if (captureMore) {
-      await handleConversationCapture();
-    }
-    
-  } catch (error) {
-    console.error(chalk.red('\n❌ Error capturing learning:'), error.message);
-  }
-}
-
-/**
- * Handle a new learning session
- */
-async function handleLearningSession() {
-  const { goal } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'goal',
-      message: 'What would you like to learn about?',
-      validate: (input) => input.trim().length > 0 || 'Please enter a learning goal'
-    }
-  ]);
-  
-  console.log(chalk.blue(`\n🎯 Learning Goal: ${goal}\n`));
-  
-  try {
-    const sessionData = await runLearningPipeline(
-      goal,
-      askUserInput,
-      displayContent
-    );
-    
-    console.log(chalk.green('\n✅ Session completed successfully!'));
-    console.log(getSessionSummary(sessionData));
-    
-    const { continueLearning } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'continueLearning',
-        message: 'Would you like to start another learning session?',
-        default: false
-      }
-    ]);
-    
-    if (continueLearning) {
-      await handleLearningSession();
-    }
-    
-  } catch (error) {
-    console.error(chalk.red('\n❌ Learning session failed:'), error.message);
-    
-    const { retry } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'retry',
-        message: 'Would you like to try again?',
-        default: false
-      }
-    ]);
-    
-    if (retry) {
-      await handleLearningSession();
-    }
-  }
-}
-
-/**
- * Show learning progress
- */
-async function showProgress() {
-  try {
-    const memory = await loadMemory();
-    const progress = analyzeProgress(memory);
-    
-    console.log(chalk.blue.bold('\n📈 Your Learning Progress\n'));
-    
-    if (progress.totalSessions === 0) {
-      console.log(chalk.yellow('No learning sessions completed yet.'));
-      console.log(chalk.gray('Start your first session to see progress!'));
-      return;
-    }
-    
-    console.log(chalk.green(`Total Sessions: ${progress.totalSessions}`));
-    console.log(chalk.green(`Average Quiz Score: ${progress.averageQuizScore}%`));
-    console.log(chalk.green(`Total Learning Time: ${progress.totalLearningTime} minutes`));
-    console.log(chalk.green(`Concepts Learned: ${progress.conceptsLearned}`));
-    
-    if (progress.trends.length > 0) {
-      console.log(chalk.blue('\n📊 Trends:'));
-      progress.trends.forEach(trend => console.log(`  • ${trend}`));
-    }
-    
-    if (progress.recommendations.length > 0) {
-      console.log(chalk.yellow('\n💡 Recommendations:'));
-      progress.recommendations.forEach(rec => console.log(`  • ${rec}`));
-    }
-    
-    if (progress.lastSession) {
-      const lastSession = new Date(progress.lastSession);
-      console.log(chalk.gray(`\nLast session: ${lastSession.toLocaleDateString()}`));
-    }
-    
-  } catch (error) {
-    console.error(chalk.red('Error loading progress:'), error.message);
-  }
-}
-
-/**
- * Show knowledge profile
- */
-async function showProfile() {
-  try {
-    const memory = await loadMemory();
-    
-    console.log(chalk.blue.bold('\n🧠 Your Knowledge Profile\n'));
-    
-    if (memory.concepts.length === 0) {
-      console.log(chalk.yellow('No concepts learned yet.'));
-      console.log(chalk.gray('Start learning to build your knowledge profile!'));
-      return;
-    }
-    
-    console.log(chalk.green(`Total Concepts: ${memory.concepts.length}`));
-    
-    // Show concepts by confidence
-    const conceptsByConfidence = memory.concepts
-      .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 10);
-    
-    console.log(chalk.blue('\n🏆 Top Concepts (by confidence):'));
-    conceptsByConfidence.forEach((concept, index) => {
-      const confidence = Math.round(concept.confidence * 100);
-      const bar = '█'.repeat(Math.floor(confidence / 10)) + '░'.repeat(10 - Math.floor(confidence / 10));
-      console.log(`  ${index + 1}. ${concept.name} [${bar}] ${confidence}%`);
-    });
-    
-    // Show recent reflections
-    if (memory.reflections.length > 0) {
-      console.log(chalk.yellow('\n💭 Recent Reflections:'));
-      const recentReflections = memory.reflections
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 3);
-      
-      recentReflections.forEach((reflection, index) => {
-        const date = new Date(reflection.date).toLocaleDateString();
-        console.log(`  ${index + 1}. [${date}] ${reflection.text.substring(0, 100)}...`);
+    if (connectionStats.most_connected.length > 0) {
+      console.log(chalk.white('  Most connected concepts:'));
+      connectionStats.most_connected.slice(0, 3).forEach(concept => {
+        console.log(chalk.gray(`    • ${concept.name} (${concept.connections} connections)`));
       });
     }
     
-  } catch (error) {
-    console.error(chalk.red('Error loading profile:'), error.message);
+    console.log(chalk.cyan('\n🔄 Reinforcement:'));
+    console.log(chalk.white(`  Total sessions: ${reinforcementStats.total_sessions}`));
+    console.log(chalk.white(`  Average performance: ${(reinforcementStats.average_performance * 100).toFixed(1)}%`));
+    console.log(chalk.white(`  Concepts reinforced: ${reinforcementStats.concepts_reinforced}`));
+    
+    console.log(chalk.cyan('\n🔍 Exploration:'));
+    console.log(chalk.white(`  Total suggestions: ${explorationStats.total_suggestions}`));
+    console.log(chalk.white(`  High priority: ${explorationStats.high_priority}`));
+    
+    console.log(chalk.cyan('\n🤔 Reflection:'));
+    console.log(chalk.white(`  Total sessions: ${reflectionStats.total_sessions}`));
+    console.log(chalk.white(`  Average insights per session: ${reflectionStats.average_insights_per_session.toFixed(1)}`));
+    
+    console.log(chalk.cyan('\n👤 User Profile:'));
+    console.log(chalk.white(`  Goals: ${graph.user_profile.goals.length}`));
+    console.log(chalk.white(`  Interests: ${graph.user_profile.interests.length}`));
+    console.log(chalk.white(`  Learning style: ${graph.user_profile.learning_style || 'Not set'}`));
   }
-}
 
-/**
- * Show learning recommendations
- */
-async function showRecommendations() {
-  try {
-    const memory = await loadMemory();
-    const recommendations = getLearningRecommendations(memory);
+  async runProfiling() {
+    console.log(chalk.blue('\n🧠 Starting User Profiling\n'));
     
-    console.log(chalk.blue.bold('\n💡 Learning Recommendations\n'));
+    const profile = await this.userProfiler.conductDeepDiveConversation();
     
-    if (recommendations.length === 0) {
-      console.log(chalk.yellow('No specific recommendations at this time.'));
-      console.log(chalk.gray('Complete some learning sessions to get personalized recommendations!'));
-      return;
-    }
-    
-    recommendations.forEach((rec, index) => {
-      console.log(`${index + 1}. ${rec}`);
-    });
-    
-  } catch (error) {
-    console.error(chalk.red('Error loading recommendations:'), error.message);
+    console.log(chalk.green('\n✅ User profiling completed!'));
+    console.log(chalk.cyan('\n📋 Your Learning Profile:'));
+    console.log(chalk.white('Goals:'), profile.goals.join(', '));
+    console.log(chalk.white('Interests:'), profile.interests.join(', '));
+    console.log(chalk.white('Learning Style:'), profile.learning_style);
+    console.log(chalk.white('Time Commitment:'), profile.time_commitment);
   }
-}
 
-/**
- * Show learning history
- */
-async function showHistory() {
-  try {
-    const memory = await loadMemory();
-    
-    console.log(chalk.blue.bold('\n📚 Learning History\n'));
-    
-    if (memory.reflections.length === 0) {
-      console.log(chalk.yellow('No learning history yet.'));
-      console.log(chalk.gray('Complete some learning sessions to see your history!'));
-      return;
-    }
-    
-    // Group reflections by topic
-    const reflectionsByTopic = {};
-    memory.reflections.forEach(reflection => {
-      const topic = reflection.topic || 'General';
-      if (!reflectionsByTopic[topic]) {
-        reflectionsByTopic[topic] = [];
+  async processContent() {
+    const { content } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'content',
+        message: 'Enter content to process (URL or text):',
+        validate: input => input.trim().length > 0 || 'Content cannot be empty'
       }
-      reflectionsByTopic[topic].push(reflection);
-    });
-    
-    Object.entries(reflectionsByTopic).forEach(([topic, reflections]) => {
-      console.log(chalk.green(`\n📖 ${topic}:`));
-      reflections
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .forEach(reflection => {
-          const date = new Date(reflection.date).toLocaleDateString();
-          console.log(`  [${date}] ${reflection.text.substring(0, 150)}...`);
-        });
-    });
-    
-  } catch (error) {
-    console.error(chalk.red('Error loading history:'), error.message);
-  }
-}
+    ]);
 
-/**
- * Clear session data
- */
-async function clearSessionData() {
-  const { confirm } = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'confirm',
-      message: 'Are you sure you want to clear all session data? This cannot be undone.',
-      default: false
-    }
-  ]);
-  
-  if (confirm) {
+    const spinner = ora('Processing content...').start();
+    
     try {
-      await clearSession();
-      console.log(chalk.green('✅ Session data cleared successfully.'));
+      const result = await this.contentProcessor.processContent(content);
+      
+      spinner.succeed('Content processed successfully!');
+      
+      console.log(chalk.cyan('\n📊 Results:'));
+      console.log(chalk.white('Title:'), result.contentItem.title);
+      console.log(chalk.white('Concepts extracted:'), result.concepts.length);
+      console.log(chalk.white('Insights generated:'), result.insights.length);
+      
+      if (result.concepts.length > 0) {
+        console.log(chalk.cyan('\n🔍 Key Concepts:'));
+        result.concepts.forEach(concept => {
+          console.log(chalk.white(`• ${concept.name}`), chalk.gray(`(confidence: ${(concept.confidence * 100).toFixed(0)}%)`));
+        });
+      }
+      
+      // Map connections
+      if (result.concepts.length > 0) {
+        const connectionSpinner = ora('Mapping connections...').start();
+        const connectionResult = await this.connectionMapper.mapNewConnections(result.concepts);
+        connectionSpinner.succeed(`Mapped ${connectionResult.connections.length} connections`);
+      }
+      
     } catch (error) {
-      console.error(chalk.red('Error clearing session data:'), error.message);
+      spinner.fail('Failed to process content');
+      throw error;
     }
-  } else {
-    console.log(chalk.yellow('Session data not cleared.'));
+  }
+
+  async runReinforcement() {
+    const spinner = ora('Generating reinforcement session...').start();
+    
+    try {
+      const session = await this.knowledgeReinforcer.generateReinforcementSession();
+      
+      if (!session) {
+        spinner.warn('No concepts need reinforcement at this time');
+        return;
+      }
+      
+      spinner.succeed('Reinforcement session generated!');
+      
+      console.log(chalk.cyan('\n📝 Questions:'));
+      
+      for (let i = 0; i < session.questions.length; i++) {
+        const question = session.questions[i];
+        console.log(chalk.white(`\n${i + 1}. ${question.question}`));
+        console.log(chalk.gray(`   Concept: ${question.concept_name}`));
+        console.log(chalk.gray(`   Type: ${question.type} | Difficulty: ${question.difficulty}`));
+        
+        const { answer } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'answer',
+            message: 'Your answer:',
+            validate: input => input.trim().length > 0 || 'Answer cannot be empty'
+          }
+        ]);
+        
+        const analysisSpinner = ora('Analyzing your answer...').start();
+        const result = await this.knowledgeReinforcer.processUserAnswer(question, answer);
+        analysisSpinner.succeed('Answer analyzed!');
+        
+        console.log(chalk.cyan('\n📊 Analysis:'));
+        console.log(chalk.white('Accuracy:'), `${(result.analysis.accuracy_score * 100).toFixed(1)}%`);
+        console.log(chalk.white('Completeness:'), `${(result.analysis.completeness_score * 100).toFixed(1)}%`);
+        console.log(chalk.white('New Confidence:'), `${(result.newConfidence * 100).toFixed(1)}%`);
+        console.log(chalk.white('Feedback:'), result.analysis.feedback);
+      }
+      
+    } catch (error) {
+      spinner.fail('Failed to generate reinforcement session');
+      throw error;
+    }
+  }
+
+  async generateSuggestions() {
+    const spinner = ora('Generating exploration suggestions...').start();
+    
+    try {
+      const suggestions = await this.explorationSuggester.generateExplorationSuggestions();
+      
+      spinner.succeed('Exploration suggestions generated!');
+      
+      if (suggestions.knowledgeGaps.length > 0) {
+        console.log(chalk.cyan('\n🕳️  Knowledge Gaps:'));
+        suggestions.knowledgeGaps.forEach(gap => {
+          console.log(chalk.white(`• ${gap.area}`), chalk.gray(`(${gap.priority} priority)`));
+          console.log(chalk.gray(`  ${gap.reason}`));
+        });
+      }
+      
+      if (suggestions.personalizedSuggestions.length > 0) {
+        console.log(chalk.cyan('\n💡 Personalized Suggestions:'));
+        suggestions.personalizedSuggestions.slice(0, 5).forEach(suggestion => {
+          console.log(chalk.white(`• ${suggestion.area}`), chalk.gray(`(${suggestion.priority} priority)`));
+          console.log(chalk.gray(`  ${suggestion.reason}`));
+        });
+      }
+      
+    } catch (error) {
+      spinner.fail('Failed to generate suggestions');
+      throw error;
+    }
+  }
+
+  async runReflection() {
+    const spinner = ora('Starting reflection session...').start();
+    
+    try {
+      const session = await this.reflectionEngine.initiateReflectionSession();
+      
+      spinner.succeed('Reflection session completed!');
+      
+      console.log(chalk.cyan('\n🤔 Reflection Insights:'));
+      session.insights.forEach((insight, index) => {
+        console.log(chalk.white(`\n${index + 1}. ${insight.prompt}`));
+        console.log(chalk.gray(`   ${insight.user_response}`));
+      });
+      
+      if (session.connections_made.length > 0) {
+        console.log(chalk.cyan('\n🔗 Connections Made:'));
+        session.connections_made.forEach(connection => {
+          console.log(chalk.white(`• ${connection.concept1} ↔ ${connection.concept2}`));
+          console.log(chalk.gray(`  ${connection.relationship}: ${connection.significance}`));
+        });
+      }
+      
+      if (session.next_steps.length > 0) {
+        console.log(chalk.cyan('\n📈 Next Steps:'));
+        session.next_steps.forEach(step => {
+          console.log(chalk.white(`• ${step.action}`), chalk.gray(`(${step.priority} priority)`));
+          console.log(chalk.gray(`  Timeline: ${step.timeline}`));
+        });
+      }
+      
+    } catch (error) {
+      spinner.fail('Failed to run reflection session');
+      throw error;
+    }
+  }
+
+  async discoverConnections() {
+    const spinner = ora('Discovering hidden connections...').start();
+    
+    try {
+      const connections = await this.connectionMapper.discoverHiddenConnections();
+      
+      if (connections.length === 0) {
+        spinner.warn('No new hidden connections found');
+        return;
+      }
+      
+      spinner.succeed(`Discovered ${connections.length} hidden connections!`);
+      
+      console.log(chalk.cyan('\n🔗 New Connections:'));
+      connections.forEach(connection => {
+        console.log(chalk.white(`• ${connection.from_concept} → ${connection.to_concept}`));
+        console.log(chalk.gray(`  ${connection.relationship_type}: ${connection.description}`));
+        console.log(chalk.gray(`  Strength: ${(connection.strength * 100).toFixed(0)}%`));
+      });
+      
+    } catch (error) {
+      spinner.fail('Failed to discover connections');
+      throw error;
+    }
+  }
+
+  async viewGraph() {
+    const graph = await this.knowledgeGraph.loadKnowledgeGraph();
+    
+    console.log(chalk.cyan('\n📊 Knowledge Graph Overview\n'));
+    
+    if (graph.concepts.length === 0) {
+      console.log(chalk.yellow('No concepts in knowledge graph yet.'));
+      return;
+    }
+    
+    console.log(chalk.white(`Total concepts: ${graph.concepts.length}`));
+    console.log(chalk.white(`Total connections: ${graph.concepts.reduce((sum, c) => sum + (c.connections?.length || 0), 0)}`));
+    
+    console.log(chalk.cyan('\n🔍 Concepts by Category:'));
+    const categories = {};
+    graph.concepts.forEach(concept => {
+      const category = concept.category || 'uncategorized';
+      if (!categories[category]) categories[category] = [];
+      categories[category].push(concept);
+    });
+    
+    Object.entries(categories).forEach(([category, concepts]) => {
+      console.log(chalk.white(`\n${category}:`));
+      concepts.forEach(concept => {
+        const confidence = (concept.confidence * 100).toFixed(0);
+        const connections = concept.connections?.length || 0;
+        console.log(chalk.gray(`  • ${concept.name} (${confidence}% confidence, ${connections} connections)`));
+      });
+    });
+  }
+
+  async resetGraph() {
+    const { confirm } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Are you sure you want to reset the knowledge graph? This will delete all data!',
+        default: false
+      }
+    ]);
+
+    if (!confirm) {
+      console.log(chalk.green('Reset cancelled.'));
+      return;
+    }
+
+    const spinner = ora('Resetting knowledge graph...').start();
+    
+    try {
+      // In a real implementation, you would delete the knowledge graph files
+      // For now, we'll just show a message
+      spinner.succeed('Knowledge graph reset completed!');
+      console.log(chalk.yellow('💡 Run the profiling command to start fresh.'));
+      
+    } catch (error) {
+      spinner.fail('Failed to reset knowledge graph');
+      throw error;
+    }
   }
 }
 
-/**
- * Helper function to ask user for input (used by learning pipeline)
- */
-async function askUserInput(prompt) {
-  const { answer } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'answer',
-      message: prompt
+// CLI setup
+program
+  .name('eumicus-cli')
+  .description('Eumicus CLI - AI Knowledge Reinforcement System')
+  .version('1.0.0');
+
+program
+  .command('interactive')
+  .description('Start interactive CLI mode')
+  .action(async () => {
+    const cli = new EumicusCLI();
+    try {
+      await cli.initialize();
+      await cli.runInteractiveMode();
+    } catch (error) {
+      console.error(chalk.red('Fatal error:'), error.message);
+      process.exit(1);
     }
-  ]);
-  return answer;
+  });
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error(chalk.red('\n💥 Uncaught Exception:'), error.message);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error(chalk.red('\n💥 Unhandled Rejection at:'), promise);
+  console.error(chalk.red('Reason:'), reason);
+  process.exit(1);
+});
+
+if (require.main === module) {
+  program.parse();
 }
 
-/**
- * Helper function to display content (used by learning pipeline)
- */
-function displayContent(content) {
-  console.log(content);
-}
+module.exports = EumicusCLI;

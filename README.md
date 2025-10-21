@@ -1,16 +1,17 @@
-# 🧠 Eumicus - AI-Assisted Adaptive Learning
+# 🧠 Eumicus - AI Knowledge Reinforcement System
 
-Eumicus is an AI-powered learning companion that adapts to what you already know, creating personalized learning experiences that build on your existing knowledge and help you make meaningful connections between concepts.
+Eumicus is an AI-assisted self-guided knowledge reinforcement tool that helps you build and maintain a comprehensive understanding of your interests, goals, and learning journey.
 
 ## ✨ Features
 
-- **🧠 Adaptive Learning**: Analyzes your existing knowledge and creates personalized learning paths
-- **📚 Interactive Lessons**: AI-generated lessons tailored to your learning style and level
-- **📝 Smart Quizzes**: Adaptive quizzes that test understanding and provide detailed feedback
-- **🤔 Guided Reflection**: Helps you connect new knowledge to existing understanding
-- **💾 Persistent Memory**: Remembers what you've learned across sessions
-- **📊 Progress Tracking**: Visualizes your learning journey and identifies patterns
-- **🌐 Multiple Interfaces**: CLI and web interfaces for different preferences
+- **🧠 Knowledge Graph**: Build a comprehensive, interconnected understanding of your learning
+- **📚 Content Processing**: Process articles, videos, podcasts, and other content automatically
+- **🔄 Spaced Repetition**: Reinforce knowledge through targeted questions and spaced repetition
+- **🔍 Exploration Suggestions**: Discover new areas to explore based on knowledge gaps
+- **🤔 Reflection Engine**: Connect new insights to existing knowledge through guided reflection
+- **📊 Real-time Visualization**: Interactive knowledge graph with live updates
+- **🌐 Web Interface**: Beautiful, modern UI with chat, graph visualization, and activity feed
+- **💻 CLI Interface**: Command-line tools for power users
 
 ## 🚀 Quick Start
 
@@ -21,217 +22,212 @@ Eumicus is an AI-powered learning companion that adapts to what you already know
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd eumicus
-   ```
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd eumicus
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+2. Install dependencies:
+```bash
+npm install
+```
 
-3. **Configure OpenAI API**
-   ```bash
-   cp env.example .env
-   # Edit .env and add your OpenAI API key
-   ```
+3. Set up environment variables:
+```bash
+cp env.example .env
+# Edit .env and add your OpenAI API key
+```
 
-4. **Start learning!**
-   
-   **CLI Interface:**
-   ```bash
-   npm start
-   ```
-   
-   **Web Interface:**
-   ```bash
-   npm run web
-   # Open http://localhost:3000 in your browser
-   ```
+4. Start the web interface:
+```bash
+npm start
+```
 
-## 🎯 How It Works
+5. Open your browser to `http://localhost:3000`
 
-Eumicus follows a complete learning cycle:
+## 🎯 Usage
 
-1. **📊 Profile Analysis**: Analyzes your existing knowledge from memory
-2. **📚 Curriculum Planning**: Creates a personalized learning plan
-3. **🎓 Interactive Teaching**: Delivers tailored lessons with examples
-4. **📝 Knowledge Testing**: Generates and grades adaptive quizzes
-5. **🤔 Guided Reflection**: Helps you connect new knowledge to existing understanding
-6. **💾 Memory Update**: Saves new concepts and insights for future sessions
+### Web Interface
 
-## 📖 Usage Examples
+1. **Start Learning Profile**: Begin with a deep-dive conversation about your goals and interests
+2. **Process Content**: Submit URLs, articles, or text to extract key concepts
+3. **Reinforce Knowledge**: Answer targeted questions to strengthen your understanding
+4. **Explore New Areas**: Get personalized suggestions for continued learning
+5. **Reflect on Progress**: Connect insights and track your learning journey
 
 ### CLI Interface
 
 ```bash
-# Start a learning session
-npm start
+# Start interactive CLI mode
+npm run cli
 
-# Choose "Start a new learning session"
-# Enter your learning goal: "neural networks"
-# Follow the interactive prompts
+# Or use specific commands
+node src/cli.js interactive
 ```
 
-### Web Interface
+### Available CLI Commands
 
 ```bash
-# Start the web server
-npm run web
+# Process content from command line
+node src/cli.js process "https://example.com/article"
 
-# Open http://localhost:3000
-# Enter your learning goal
-# Watch the real-time progress
+# Run reinforcement session
+node src/cli.js reinforce
+
+# Generate exploration suggestions
+node src/cli.js suggest
+
+# View learning statistics
+node src/cli.js stats
+
+# Start user profiling
+node src/cli.js profile
 ```
 
 ## 🏗️ Architecture
 
-```
-eumicus/
-├── src/
-│   ├── index.js              # CLI entry point
-│   ├── cli.js                # CLI interface
-│   ├── web-server.js         # Web server
-│   └── learning-pipeline.js  # Main learning orchestration
-├── modules/
-│   ├── memory.js             # Memory management
-│   ├── profiler.js           # Knowledge profiling
-│   ├── planner.js            # Curriculum planning
-│   ├── tutor.js              # Lesson generation
-│   ├── quiz.js               # Quiz system
-│   ├── reflection.js         # Reflection prompts
-│   ├── assimilator.js        # Memory updates
-│   └── openai-client.js      # OpenAI integration
-├── data/
-│   ├── memory.json           # Your learning memory
-│   └── session.json          # Current session data
-└── public/
-    └── index.html            # Web interface
-```
+### Core Modules
+
+- **Knowledge Graph Manager**: Handles JSON file persistence and data operations
+- **User Profiler**: Conducts deep-dive conversations to understand learning goals
+- **Content Processor**: Extracts concepts and insights from various content types
+- **Knowledge Reinforcer**: Generates spaced repetition questions and tracks performance
+- **Exploration Suggester**: Identifies knowledge gaps and suggests new learning areas
+- **Connection Mapper**: Discovers relationships between concepts
+- **Reflection Engine**: Guides users to connect new insights to existing knowledge
+
+### Data Storage
+
+All data is stored locally in JSON files:
+- `data/knowledge-graph.json`: Main knowledge graph with concepts, connections, and user profile
+- `data/activity-log.json`: Real-time activity feed and system logs
+- `data/content-cache.json`: Cached content for faster processing
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-Create a `.env` file with:
-
-```env
-# Required
+```bash
 OPENAI_API_KEY=your_openai_api_key_here
-
-# Optional
-OPENAI_MODEL=gpt-4o
-OPENAI_TEMPERATURE=0.7
 PORT=3000
+NODE_ENV=development
+MAX_CONTENT_LENGTH=50000
+CONTENT_CACHE_TTL=86400000
 ```
 
-### Memory Structure
+### Customization
 
-Your learning memory is stored in `data/memory.json`:
+You can customize the system by modifying:
+- **Learning schedules**: Adjust reinforcement timing in `modules/knowledge-reinforcer.js`
+- **Content processing**: Add new content types in `modules/content-processor.js`
+- **Question generation**: Modify prompts in `modules/openai-client.js`
+- **UI styling**: Update CSS in `public/index.html`
+
+## 📊 Data Model
+
+### Knowledge Graph Structure
 
 ```json
 {
+  "user_profile": {
+    "goals": ["become a better data scientist"],
+    "interests": ["machine learning", "philosophy"],
+    "learning_style": "visual + hands-on",
+    "time_commitment": "30 minutes daily"
+  },
   "concepts": [
     {
       "name": "neural networks",
       "confidence": 0.8,
-      "added": "2025-01-15T10:30:00Z",
-      "lastUpdated": "2025-01-15T10:30:00Z"
+      "connections": ["deep learning", "backpropagation"],
+      "sources": ["article_1", "video_2"],
+      "reinforcement_schedule": "2025-10-27"
     }
   ],
-  "reflections": [
-    {
-      "date": "2025-01-15T10:30:00Z",
-      "text": "I learned that neural networks are inspired by biological neurons...",
-      "topic": "neural networks",
-      "id": "1642248600000"
-    }
-  ],
-  "stats": {
-    "totalSessions": 5,
-    "averageQuizScore": 85,
-    "totalLearningTime": 120,
-    "conceptsLearned": 15
-  }
+  "content_items": [...],
+  "reinforcement_sessions": [...],
+  "exploration_suggestions": [...]
 }
 ```
 
-## 🎨 Learning Styles Supported
+## 🎨 User Interface
 
-- **Visual**: Uses diagrams, examples, and visual metaphors
-- **Analytical**: Provides step-by-step logical explanations  
-- **Practical**: Includes hands-on examples and real-world applications
-- **Conceptual**: Focuses on big-picture understanding and connections
+The web interface features:
 
-## 📊 Progress Tracking
+- **Chat Tab**: Conversational interface for interactions and content submission
+- **Graph Tab**: Interactive knowledge graph visualization with D3.js
+- **Activity Feed**: Real-time display of AI background processes
+- **Responsive Design**: Works on desktop and mobile devices
 
-Eumicus tracks your learning progress across multiple dimensions:
+## 🔄 Learning Pipeline
 
-- **Session Statistics**: Total sessions, average scores, learning time
-- **Concept Mastery**: Confidence levels for each learned concept
-- **Learning Patterns**: Identifies your preferred learning style and pace
-- **Knowledge Connections**: Maps relationships between concepts
-- **Reflection Insights**: Captures your learning insights and connections
+The system runs continuous background processes:
 
-## 🔄 Learning Cycle
-
-Each learning session follows this cycle:
-
-1. **Goal Setting**: Define what you want to learn
-2. **Memory Analysis**: Review your existing knowledge
-3. **Plan Creation**: Generate a personalized learning path
-4. **Interactive Learning**: Engage with tailored lessons
-5. **Knowledge Testing**: Take adaptive quizzes
-6. **Reflection**: Connect new knowledge to existing understanding
-7. **Memory Update**: Save new concepts and insights
+- **Daily Analysis**: Identifies concepts needing reinforcement and generates suggestions
+- **Weekly Reflection**: Provides comprehensive learning progress reports
+- **Connection Discovery**: Finds hidden relationships between concepts
+- **Health Checks**: Monitors knowledge graph integrity and performance
 
 ## 🛠️ Development
 
 ### Project Structure
 
-- **`src/`**: Main application code
-- **`modules/`**: Core learning modules
-- **`data/`**: Local data storage
-- **`public/`**: Web interface assets
-
-### Key Modules
-
-- **Memory System**: Manages persistent learning data
-- **Profiler**: Analyzes existing knowledge and learning patterns
-- **Planner**: Creates personalized learning curricula
-- **Tutor**: Generates interactive lessons
-- **Quiz System**: Creates and grades adaptive assessments
-- **Reflection Engine**: Guides learning insights and connections
-- **Assimilator**: Updates memory with new knowledge
+```
+eumicus/
+├── src/
+│   ├── index.js              # Main application entry point
+│   ├── cli.js                # CLI interface
+│   ├── web-server.js         # Web server with WebSocket support
+│   └── learning-pipeline.js  # Background learning processes
+├── modules/
+│   ├── knowledge-graph.js    # Data persistence and management
+│   ├── openai-client.js      # OpenAI API integration
+│   ├── user-profiler.js      # User profiling and conversation
+│   ├── content-processor.js  # Content analysis and extraction
+│   ├── knowledge-reinforcer.js # Spaced repetition system
+│   ├── exploration-suggester.js # Knowledge gap analysis
+│   ├── connection-mapper.js  # Concept relationship discovery
+│   └── reflection-engine.js  # Guided reflection sessions
+├── public/
+│   └── index.html            # Web interface
+├── data/                     # Local data storage
+└── package.json
+```
 
 ### Adding New Features
 
-1. Create new modules in `modules/`
-2. Integrate with the learning pipeline in `src/learning-pipeline.js`
-3. Update CLI and web interfaces as needed
-4. Add tests and documentation
+1. **New Content Types**: Extend `ContentProcessor` to handle new formats
+2. **Custom Questions**: Modify prompts in `OpenAIClient` for different question types
+3. **Visualization**: Update D3.js code in `public/index.html` for new graph layouts
+4. **API Endpoints**: Add new routes in `WebServer` for additional functionality
+
+## 📈 Performance
+
+- **Local Storage**: All data stored locally for privacy and speed
+- **Efficient Processing**: Batched operations and caching for optimal performance
+- **Real-time Updates**: WebSocket connections for live activity feed
+- **Scalable Architecture**: Modular design allows for easy extension
+
+## 🔒 Privacy & Security
+
+- **Local-First**: All data stored on your machine
+- **No External Dependencies**: Only OpenAI API calls for AI processing
+- **Secure API Keys**: Environment variable configuration
+- **Data Control**: Full control over your knowledge graph and learning data
 
 ## 🚧 Roadmap
 
 ### Version 1.1
-- [ ] Enhanced memory visualization
-- [ ] Learning analytics dashboard
-- [ ] Export/import learning data
-- [ ] Multiple learning modes
-
-### Version 1.2
-- [ ] Integration with external knowledge bases
-- [ ] Collaborative learning features
-- [ ] Advanced progress tracking
-- [ ] Learning recommendations engine
+- [ ] Enhanced content processing (PDF, audio transcripts)
+- [ ] Advanced knowledge graph features (relationship strength, learning paths)
+- [ ] Improved spaced repetition algorithms
 
 ### Version 2.0
-- [ ] Multi-user support
-- [ ] Cloud synchronization
-- [ ] Mobile app
-- [ ] Advanced AI models integration
+- [ ] Social learning features
+- [ ] Mobile companion app
+- [ ] Collaborative knowledge graphs
+- [ ] Advanced analytics and insights
 
 ## 🤝 Contributing
 
@@ -247,18 +243,12 @@ MIT License - see LICENSE file for details
 
 ## 🙏 Acknowledgments
 
-- OpenAI for providing the AI capabilities
-- The learning science community for research insights
-- Contributors and users for feedback and improvements
-
-## 📞 Support
-
-- **Issues**: Report bugs and request features on GitHub
-- **Discussions**: Join community discussions
-- **Documentation**: Check the wiki for detailed guides
+- OpenAI for providing the GPT-4 API
+- D3.js for graph visualization
+- The open-source community for inspiration and tools
 
 ---
 
-**"The real measure of intelligence isn't recall — it's reflection."**
+**"The real measure of learning isn't consumption — it's connection and reinforcement."**
 
-Start your adaptive learning journey with Eumicus today! 🚀
+Start your knowledge reinforcement journey with Eumicus today! 🚀
