@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eumicus - AI-Assisted Adaptive Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            max-height: 500px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.tutor .message-content {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .message.tutor .message-avatar {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .message.user .message-avatar {
+            background: #667eea;
+            color: white;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .learning-plan {
+            margin-bottom: 20px;
+        }
+
+        .plan-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .plan-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #e1e5e9;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .plan-item.current {
+            background: #e3f2fd;
+            border-left-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .plan-item.completed {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .plan-item.pending {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .plan-item-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .plan-item-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .plan-item-time {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .current-topic {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .current-topic-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .current-topic-description {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e1e5e9;
+        }
+
+        .progress-dot.active {
+            background: #667eea;
+        }
+
+        .progress-dot.completed {
+            background: #4caf50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .content-area {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="header">
+                <h1>🧠 Eumicus</h1>
+                <p>AI-Assisted Adaptive Learning</p>
+            </div>
+
+            <div class="card">
+                <div id="welcome-screen">
+                    <h2>Start Learning</h2>
+                    <p>Tell me what you'd like to learn about, and I'll create a personalized learning experience just for you!</p>
+                    
+                    <div class="form-group">
+                        <label for="learning-goal">What would you like to learn?</label>
+                        <input type="text" id="learning-goal" placeholder="e.g., neural networks, cooking, history of art..." />
+                    </div>
+                    
+                    <button class="btn" onclick="startLearning()" id="learn-btn">Start Learning Session</button>
+                    
+                    <div id="learning-status" class="hidden"></div>
+                </div>
+
+                <div id="chat-interface" class="chat-container hidden">
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Messages will be added here -->
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" class="chat-input" placeholder="Type your response..." disabled />
+                        <button class="send-button" id="send-button" onclick="sendMessage()" disabled>
+                            ➤
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div id="sidebar-content">
+                <div class="current-topic">
+                    <div class="current-topic-title">Ready to Learn</div>
+                    <div class="current-topic-description">Start a learning session to see your personalized plan</div>
+                </div>
+                
+                <div class="learning-plan">
+                    <div class="plan-title">📚 Learning Plan</div>
+                    <div id="plan-items">
+                        <p style="color: #666; font-style: italic;">No plan yet. Start learning to see your personalized curriculum!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let sessionCheckInterval = null;
+        let currentLesson = null;
+        let currentPlan = null;
+        let currentStep = 0;
+        let isWaitingForResponse = false;
+
+        // Check configuration on load
+        async function checkConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                
+                if (!config.configured) {
+                    showStatus('error', 'OpenAI API key not configured. Please set your OPENAI_API_KEY environment variable.');
+                    document.getElementById('learn-btn').disabled = true;
+                }
+            } catch (error) {
+                showStatus('error', 'Failed to check configuration: ' + error.message);
+            }
+        }
+
+        // Show status message
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('learning-status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.classList.remove('hidden');
+        }
+
+        // Add message to chat
+        function addMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'tutor'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = isUser ? '👤' : '🧠';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = content.replace(/\n/g, '<br>');
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Start learning session
+        async function startLearning() {
+            const goal = document.getElementById('learning-goal').value.trim();
+            
+            if (!goal) {
+                showStatus('error', 'Please enter a learning goal');
+                return;
+            }
+
+            try {
+                showStatus('loading', 'Starting your learning session...');
+                document.getElementById('learn-btn').disabled = true;
+
+                const response = await fetch('/api/learn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ goal })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentSessionId = result.sessionId;
+                    showStatus('loading', 'Learning session started! Processing...');
+                    
+                    // Switch to chat interface
+                    document.getElementById('welcome-screen').classList.add('hidden');
+                    document.getElementById('chat-interface').classList.remove('hidden');
+                    
+                    // Enable chat input
+                    document.getElementById('chat-input').disabled = false;
+                    document.getElementById('send-button').disabled = false;
+                    
+                    // Start session monitoring
+                    startSessionMonitoring();
+                } else {
+                    showStatus('error', result.error);
+                    document.getElementById('learn-btn').disabled = false;
+                }
+            } catch (error) {
+                showStatus('error', 'Failed to start learning session: ' + error.message);
+                document.getElementById('learn-btn').disabled = false;
+            }
+        }
+
+        // Monitor session progress
+        function startSessionMonitoring() {
+            sessionCheckInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/session/${currentSessionId}`);
+                    const session = await response.json();
+                    
+                    updateSessionProgress(session);
+                    
+                    if (session.status === 'completed' || session.status === 'error') {
+                        clearInterval(sessionCheckInterval);
+                        
+                        if (session.status === 'completed') {
+                            showStatus('success', 'Learning session completed successfully!');
+                            addMessage("🎉 Congratulations! You've completed this learning session. Your knowledge has been updated and saved. Feel free to start a new session anytime!");
+                        } else {
+                            showStatus('error', 'Learning session failed: ' + session.error);
+                            addMessage("❌ I'm sorry, but there was an error with the learning session. Please try again or contact support if the issue persists.");
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error monitoring session:', error);
+                }
+            }, 2000);
+        }
+
+        // Update session progress
+        function updateSessionProgress(session) {
+            // Update learning plan if available
+            if (session.plan) {
+                updateLearningPlan(session.plan);
+            }
+            
+            // Check if we have new content to display (initial welcome message)
+            if (session.content && session.content.length > 0 && session.content.length === 1) {
+                const welcomeMessage = session.content[0];
+                if (welcomeMessage && !document.querySelector('.message')) {
+                    addMessage(welcomeMessage);
+                }
+            }
+        }
+
+        // Update learning plan display
+        function updateLearningPlan(plan) {
+            if (!plan || !plan.subtopics) return;
+            
+            currentPlan = plan;
+            const planItems = document.getElementById('plan-items');
+            
+            planItems.innerHTML = plan.subtopics.map((subtopic, index) => {
+                let status = 'pending';
+                if (index < currentStep) status = 'completed';
+                else if (index === currentStep) status = 'current';
+                
+                return `
+                    <div class="plan-item ${status}">
+                        <div class="plan-item-title">${subtopic.title}</div>
+                        <div class="plan-item-description">${subtopic.description}</div>
+                        <div class="plan-item-time">${subtopic.estimatedTime} min</div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Update current topic
+            if (currentStep < plan.subtopics.length) {
+                const currentSubtopic = plan.subtopics[currentStep];
+                document.querySelector('.current-topic-title').textContent = currentSubtopic.title;
+                document.querySelector('.current-topic-description').textContent = currentSubtopic.description;
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message || isWaitingForResponse) return;
+            
+            // Add user message to chat
+            addMessage(message, true);
+            input.value = '';
+            
+            // Disable input while processing
+            isWaitingForResponse = true;
+            document.getElementById('chat-input').disabled = true;
+            document.getElementById('send-button').disabled = true;
+            
+            // Show typing indicator
+            addMessage("🤔 Let me think about that...");
+            
+            try {
+                // Send message to backend
+                const response = await fetch(`/api/session/${currentSessionId}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Remove typing indicator
+                    const messages = document.getElementById('chat-messages');
+                    messages.removeChild(messages.lastChild);
+                    
+                    // Add tutor response
+                    addMessage(result.response);
+                } else {
+                    // Remove typing indicator
+                    const messages = document.getElementById('chat-messages');
+                    messages.removeChild(messages.lastChild);
+                    
+                    // Show error message
+                    addMessage("I'm sorry, I'm having trouble processing that right now. Please try again.");
+                }
+            } catch (error) {
+                // Remove typing indicator
+                const messages = document.getElementById('chat-messages');
+                messages.removeChild(messages.lastChild);
+                
+                // Show error message
+                addMessage("I'm sorry, there was a connection error. Please try again.");
+            }
+            
+            // Re-enable input
+            isWaitingForResponse = false;
+            document.getElementById('chat-input').disabled = false;
+            document.getElementById('send-button').disabled = false;
+            document.getElementById('chat-input').focus();
+        }
+
+        // Handle Enter key in chat input
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Handle Enter key in learning goal input
+        document.getElementById('learning-goal').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startLearning();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkConfig();
+        });
+    </script>
+</body>
+</html>

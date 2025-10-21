@@ -1,0 +1,26 @@
+{
+  "name": "eumicus",
+  "version": "1.0.0",
+  "description": "AI-assisted adaptive learning tool that adapts to what you already know",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "web": "node src/web-server.js"
+  },
+  "keywords": ["ai", "learning", "education", "adaptive", "tutor"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^9.2.12",
+    "express": "^4.18.2",
+    "openai": "^4.20.1",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
