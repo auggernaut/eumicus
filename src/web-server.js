@@ -142,6 +142,44 @@ class WebServer {
       }
     });
 
+    this.app.get('/api/reflection-question/:sessionId', async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const question = await this.reflectionEngine.getCurrentQuestion(sessionId);
+        res.json(question);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/reflection-response', async (req, res) => {
+      try {
+        const { sessionId, response } = req.body;
+        const result = await this.reflectionEngine.processReflectionResponse(sessionId, response);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/weekly-reflection', async (req, res) => {
+      try {
+        const report = await this.reflectionEngine.generateWeeklyReflection();
+        res.json(report);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/learning-patterns', async (req, res) => {
+      try {
+        const patterns = await this.reflectionEngine.identifyLearningPatterns();
+        res.json(patterns);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     // Serve the main page
     this.app.get('/', (req, res) => {
       res.sendFile(path.join(__dirname, '../public/index.html'));

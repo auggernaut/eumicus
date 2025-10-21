@@ -29,6 +29,8 @@ class ReflectionEngine {
       id: `reflection_${Date.now()}`,
       start_time: new Date().toISOString(),
       status: 'active',
+      current_question_index: 0,
+      questions: [],
       insights: [],
       connections_made: [],
       goals_progress: [],
@@ -37,33 +39,19 @@ class ReflectionEngine {
 
     // Generate reflection prompts
     const prompts = await this.generateReflectionPrompts(userProfile, recentContent, recentConcepts);
-    
-    // Process each prompt
-    for (const prompt of prompts) {
-      const reflection = await this.processReflectionPrompt(prompt, userProfile, graph);
-      if (reflection) {
-        reflectionSession.insights.push(reflection);
-      }
-    }
+    reflectionSession.questions = prompts;
 
-    // Analyze insights and generate connections
-    const analysis = await this.analyzeReflectionInsights(reflectionSession.insights, userProfile);
-    reflectionSession.connections_made = analysis.connections;
-    reflectionSession.goals_progress = analysis.goals_progress;
-    reflectionSession.next_steps = analysis.next_steps;
-
-    // Save reflection session
+    // Save the session state (without insights yet)
     await this.saveReflectionSession(reflectionSession);
 
     await this.knowledgeGraph.addActivity({
       type: 'reflection',
       agent: 'Reflection Engine',
-      message: `Completed reflection session with ${reflectionSession.insights.length} insights`,
-      status: 'completed',
+      message: `Reflection session started with ${prompts.length} questions`,
+      status: 'in_progress',
       details: {
-        insights_generated: reflectionSession.insights.length,
-        connections_made: reflectionSession.connections_made.length,
-        goals_assessed: reflectionSession.goals_progress.length
+        questions_generated: prompts.length,
+        session_id: reflectionSession.id
       }
     });
 
@@ -147,40 +135,103 @@ class ReflectionEngine {
     ];
   }
 
-  async processReflectionPrompt(prompt, userProfile, graph) {
-    // In a real implementation, this would capture user input
-    // For now, we'll simulate with AI-generated insights
-    const messages = [
-      {
-        role: 'system',
-        content: `You are helping a user reflect on their learning. Based on their profile and recent learning, provide a thoughtful response to this reflection prompt.
-        
-        User Profile: ${JSON.stringify(userProfile)}
-        Recent Learning: ${JSON.stringify(graph.concepts.slice(-10).map(c => ({ name: c.name, confidence: c.confidence })))}
-        
-        Provide a genuine, insightful response that shows deep thinking about their learning journey.`
-      },
-      {
-        role: 'user',
-        content: `Reflection Prompt: ${prompt.question}
-        Context: ${prompt.context}`
-      }
-    ];
-
-    try {
-      const response = await this.openai.generateResponse(messages, { max_tokens: 300 });
-      
-      return {
-        prompt: prompt.question,
-        category: prompt.category,
-        user_response: response,
-        timestamp: new Date().toISOString(),
-        insight_type: prompt.expected_insight_type
-      };
-    } catch (error) {
-      console.error('Error processing reflection prompt:', error);
+  async getCurrentQuestion(sessionId) {
+    const graph = await this.knowledgeGraph.loadKnowledgeGraph();
+    const session = graph.reflection_sessions?.find(s => s.id === sessionId);
+    
+    if (!session || session.status !== 'active') {
       return null;
     }
+
+    const currentIndex = session.current_question_index || 0;
+    const question = session.questions[currentIndex];
+    
+    if (!question) {
+      return null;
+    }
+
+    return {
+      question: question.question,
+      category: question.category,
+      context: question.context,
+      questionIndex: currentIndex,
+      totalQuestions: session.questions.length,
+      sessionId: sessionId
+    };
+  }
+
+  async processReflectionResponse(sessionId, userResponse) {
+    const graph = await this.knowledgeGraph.loadKnowledgeGraph();
+    const session = graph.reflection_sessions?.find(s => s.id === sessionId);
+    
+    if (!session || session.status !== 'active') {
+      throw new Error('Reflection session not found or not active');
+    }
+
+    const currentIndex = session.current_question_index || 0;
+    const currentQuestion = session.questions[currentIndex];
+    
+    if (!currentQuestion) {
+      throw new Error('No current question found');
+    }
+
+    // Add the user's response as an insight
+    const insight = {
+      prompt: currentQuestion.question,
+      category: currentQuestion.category,
+      user_response: userResponse,
+      timestamp: new Date().toISOString(),
+      insight_type: currentQuestion.expected_insight_type
+    };
+
+    session.insights.push(insight);
+    session.current_question_index = currentIndex + 1;
+
+    // Check if we've completed all questions
+    if (session.current_question_index >= session.questions.length) {
+      // Complete the reflection session
+      await this.completeReflectionSession(session);
+    } else {
+      // Save progress and continue
+      await this.saveReflectionSession(session);
+    }
+
+    return {
+      insight: insight,
+      isComplete: session.current_question_index >= session.questions.length,
+      nextQuestion: session.current_question_index < session.questions.length ? 
+        session.questions[session.current_question_index] : null
+    };
+  }
+
+  async completeReflectionSession(session) {
+    const graph = await this.knowledgeGraph.loadKnowledgeGraph();
+    const userProfile = graph.user_profile;
+
+    // Analyze insights and generate connections
+    const analysis = await this.analyzeReflectionInsights(session.insights, userProfile);
+    session.connections_made = analysis.connections;
+    session.goals_progress = analysis.goals_progress;
+    session.next_steps = analysis.next_steps;
+    session.status = 'completed';
+    session.end_time = new Date().toISOString();
+
+    // Save completed session
+    await this.saveReflectionSession(session);
+
+    await this.knowledgeGraph.addActivity({
+      type: 'reflection',
+      agent: 'Reflection Engine',
+      message: `Completed reflection session with ${session.insights.length} insights`,
+      status: 'completed',
+      details: {
+        insights_generated: session.insights.length,
+        connections_made: session.connections_made.length,
+        goals_assessed: session.goals_progress.length
+      }
+    });
+
+    return session;
   }
 
   async analyzeReflectionInsights(insights, userProfile) {
@@ -264,9 +315,18 @@ class ReflectionEngine {
       graph.reflection_sessions = [];
     }
     
-    session.end_time = new Date().toISOString();
-    session.status = 'completed';
-    graph.reflection_sessions.push(session);
+    // Only set end_time and completed status if the session is actually completed
+    if (session.status === 'completed') {
+      session.end_time = new Date().toISOString();
+    }
+    
+    // Find existing session or add new one
+    const existingIndex = graph.reflection_sessions.findIndex(s => s.id === session.id);
+    if (existingIndex >= 0) {
+      graph.reflection_sessions[existingIndex] = session;
+    } else {
+      graph.reflection_sessions.push(session);
+    }
     
     await this.knowledgeGraph.saveKnowledgeGraph(graph);
   }
