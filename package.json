@@ -1,19 +1,18 @@
 {
   "name": "eumicus",
   "version": "1.0.0",
-  "description": "AI-assisted self-guided knowledge reinforcement tool",
+  "description": "AI-assisted knowledge reinforcement system",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node src/index.js --dev",
-    "cli": "node src/cli.js"
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "ai",
-    "learning",
     "knowledge",
-    "reinforcement",
-    "education"
+    "learning",
+    "reinforcement"
   ],
   "author": "",
   "license": "MIT",
@@ -21,6 +20,7 @@
     "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.12",
     "commander": "^11.1.0",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
     "inquirer": "^8.2.6",
     "node-fetch": "^3.3.2",

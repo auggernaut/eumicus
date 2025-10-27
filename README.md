@@ -110,7 +110,7 @@ All data is stored locally in JSON files:
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
-PORT=3000
+PORT=3001
 NODE_ENV=development
 MAX_CONTENT_LENGTH=50000
 CONTENT_CACHE_TTL=86400000
@@ -252,3 +252,4 @@ MIT License - see LICENSE file for details
 **"The real measure of learning isn't consumption — it's connection and reinforcement."**
 
 Start your knowledge reinforcement journey with Eumicus today! 🚀
+

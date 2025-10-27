@@ -55,7 +55,11 @@
       "category": "Programming",
       "priority": "high",
       "created_at": "2025-10-21T15:12:34.792Z",
-      "last_updated": "2025-10-21T15:12:34.792Z"
+      "last_updated": "2025-10-21T15:12:34.792Z",
+      "connections": [
+        "Sora AI",
+        "AI in Chip Design"
+      ]
     },
     {
       "name": "Data Structures and Algorithms",
@@ -64,7 +68,12 @@
       "category": "Programming",
       "priority": "high",
       "created_at": "2025-10-21T15:12:34.795Z",
-      "last_updated": "2025-10-21T15:12:34.795Z"
+      "last_updated": "2025-10-21T15:12:34.795Z",
+      "connections": [
+        "Sora AI",
+        "AI in Chip Design",
+        "Technological Singularity"
+      ]
     },
     {
       "name": "Introduction to Machine Learning",
@@ -73,7 +82,12 @@
       "category": "Machine Learning",
       "priority": "medium",
       "created_at": "2025-10-21T15:12:34.797Z",
-      "last_updated": "2025-10-21T15:12:34.797Z"
+      "last_updated": "2025-10-21T15:12:34.797Z",
+      "connections": [
+        "AI in Chip Design",
+        "Technological Singularity",
+        "Sora AI"
+      ]
     },
     {
       "name": "Linear Algebra and Statistics",
@@ -82,7 +96,12 @@
       "category": "Mathematics",
       "priority": "medium",
       "created_at": "2025-10-21T15:12:34.799Z",
-      "last_updated": "2025-10-21T15:12:34.799Z"
+      "last_updated": "2025-10-21T15:12:34.799Z",
+      "connections": [
+        "Sora AI",
+        "AI in Chip Design",
+        "Technological Singularity"
+      ]
     },
     {
       "name": "SaaS Business Models",
@@ -91,7 +110,10 @@
       "category": "business",
       "priority": "high",
       "created_at": "2025-10-21T15:22:12.793Z",
-      "last_updated": "2025-10-21T15:22:12.793Z"
+      "last_updated": "2025-10-21T15:22:12.793Z",
+      "connections": [
+        "Sora AI"
+      ]
     },
     {
       "name": "AI in Marketing",
@@ -100,7 +122,11 @@
       "category": "AI",
       "priority": "high",
       "created_at": "2025-10-21T15:22:12.796Z",
-      "last_updated": "2025-10-21T15:22:12.796Z"
+      "last_updated": "2025-10-21T15:22:12.796Z",
+      "connections": [
+        "Sora AI",
+        "AI in Chip Design"
+      ]
     },
     {
       "name": "Sales Techniques for Startups",
@@ -118,7 +144,11 @@
       "category": "AI",
       "priority": "high",
       "created_at": "2025-10-21T15:22:12.799Z",
-      "last_updated": "2025-10-21T15:22:12.799Z"
+      "last_updated": "2025-10-21T15:22:12.799Z",
+      "connections": [
+        "AI in Chip Design",
+        "Sora AI"
+      ]
     },
     {
       "name": "Material Science Basics",
@@ -136,7 +166,10 @@
       "category": "AI Application",
       "connections": [
         "Introduction to Machine Learning",
-        "Linear Algebra and Statistics"
+        "Linear Algebra and Statistics",
+        "AI in Chip Design",
+        "Technological Singularity",
+        "Sora AI"
       ],
       "sources": [
         "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
@@ -153,7 +186,14 @@
       "confidence": 0.85,
       "category": "AI Technology",
       "connections": [
-        "AI Application Development"
+        "AI Application Development",
+        "Python Programming",
+        "Data Structures and Algorithms",
+        "Linear Algebra and Statistics",
+        "SaaS Business Models",
+        "AI in Marketing",
+        "Introduction to Machine Learning",
+        "AI in Mathematics"
       ],
       "sources": [
         "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
@@ -170,7 +210,14 @@
       "confidence": 0.9,
       "category": "AI Application",
       "connections": [
-        "Material Science Basics"
+        "Material Science Basics",
+        "Python Programming",
+        "Data Structures and Algorithms",
+        "Introduction to Machine Learning",
+        "Linear Algebra and Statistics",
+        "AI in Marketing",
+        "AI Application Development",
+        "AI in Mathematics"
       ],
       "sources": [
         "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
@@ -187,7 +234,11 @@
       "confidence": 0.8,
       "category": "AI Theory",
       "connections": [
-        "AI Application Development"
+        "AI Application Development",
+        "Data Structures and Algorithms",
+        "Introduction to Machine Learning",
+        "Linear Algebra and Statistics",
+        "AI in Mathematics"
       ],
       "sources": [
         "https://www.youtube.com/watch?v=VfwNK9OVsrM&t=3760s"
@@ -197,6 +248,80 @@
       "created_from": "youtube_video",
       "created_at": "2025-10-21T17:05:53.294Z",
       "last_updated": "2025-10-21T17:05:53.294Z"
+    },
+    {
+      "name": "OpenAI Internet Browser",
+      "description": "A new internet browser developed by OpenAI, potentially integrated with AI capabilities to enhance user experience.",
+      "confidence": 0.9,
+      "category": "Technology",
+      "connections": [
+        "AI Application Development",
+        "Sora AI",
+        "Python Programming",
+        "Data Structures and Algorithms",
+        "Introduction to Machine Learning",
+        "Linear Algebra and Statistics",
+        "AI in Marketing",
+        "SaaS Business Models",
+        "ChatGPT Atlas",
+        "AI-enhanced Browsing"
+      ],
+      "sources": [
+        "https://www.youtube.com/watch?v=m15oymz-SUU"
+      ],
+      "last_reinforced": null,
+      "reinforcement_schedule": "2025-11-10T20:15:44.957Z",
+      "created_from": "youtube_video",
+      "created_at": "2025-10-27T20:15:44.959Z",
+      "last_updated": "2025-10-27T20:16:25.226Z"
+    },
+    {
+      "name": "ChatGPT Atlas",
+      "description": "A feature or tool associated with OpenAI's ChatGPT, likely providing enhanced navigation or interaction capabilities.",
+      "confidence": 0.85,
+      "category": "AI Tools",
+      "connections": [
+        "AI in Marketing",
+        "AI Application Development",
+        "Introduction to Machine Learning",
+        "Python Programming",
+        "SaaS Business Models",
+        "AI in Mathematics",
+        "OpenAI Internet Browser",
+        "AI-enhanced Browsing"
+      ],
+      "sources": [
+        "https://www.youtube.com/watch?v=m15oymz-SUU"
+      ],
+      "last_reinforced": null,
+      "reinforcement_schedule": "2025-11-10T20:15:44.957Z",
+      "created_from": "youtube_video",
+      "created_at": "2025-10-27T20:15:44.961Z",
+      "last_updated": "2025-10-27T20:16:25.227Z"
+    },
+    {
+      "name": "AI-enhanced Browsing",
+      "description": "The use of artificial intelligence to improve the browsing experience, possibly through personalized content delivery or advanced search capabilities.",
+      "confidence": 0.9,
+      "category": "AI Technology",
+      "connections": [
+        "AI in Marketing",
+        "AI Application Development",
+        "Introduction to Machine Learning",
+        "Data Structures and Algorithms",
+        "Python Programming",
+        "SaaS Business Models",
+        "OpenAI Internet Browser",
+        "ChatGPT Atlas"
+      ],
+      "sources": [
+        "https://www.youtube.com/watch?v=m15oymz-SUU"
+      ],
+      "last_reinforced": null,
+      "reinforcement_schedule": "2025-11-10T20:15:44.957Z",
+      "created_from": "youtube_video",
+      "created_at": "2025-10-27T20:15:44.961Z",
+      "last_updated": "2025-10-27T20:16:25.228Z"
     }
   ],
   "content_items": [
@@ -223,11 +348,32 @@
       ],
       "processed_date": "2025-10-21T17:05:53.290Z",
       "id": "content_1761066353290"
+    },
+    {
+      "type": "youtube_video",
+      "url": "https://www.youtube.com/watch?v=m15oymz-SUU",
+      "title": "The OpenAI Internet Browser Has Arrived: ChatGPT Atlas w/ Dave Blundin & Alexander Wissner-Gross",
+      "content": "YouTube video: The OpenAI Internet Browser Has Arrived: ChatGPT Atlas w/ Dave Blundin & Alexander Wissner-Gross",
+      "key_concepts": [
+        "OpenAI Internet Browser",
+        "ChatGPT Atlas",
+        "AI-enhanced Browsing"
+      ],
+      "insights": [
+        "The integration of AI into web browsers could significantly change how users interact with online content.",
+        "OpenAI's developments in AI tools like ChatGPT Atlas suggest a trend towards more interactive and intelligent browsing experiences."
+      ],
+      "key_takeaways": [
+        "OpenAI is expanding its AI capabilities into the realm of internet browsing, potentially setting new standards for browser functionality.",
+        "AI tools like ChatGPT Atlas could offer innovative solutions for navigating and interacting with web content."
+      ],
+      "processed_date": "2025-10-27T20:15:44.958Z",
+      "id": "content_1761596144958"
     }
   ],
   "reinforcement_sessions": [],
   "exploration_suggestions": [],
-  "last_updated": "2025-10-21T19:29:27.160Z",
+  "last_updated": "2025-10-27T20:16:25.228Z",
   "reflection_sessions": [
     {
       "id": "reflection_1761073737840",

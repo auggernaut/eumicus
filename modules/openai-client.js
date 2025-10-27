@@ -281,6 +281,88 @@ class OpenAIClient {
 
     return await this.generateStructuredResponse(messages, schema);
   }
+
+  async expandConcept(concept, allConcepts) {
+    const messages = [
+      {
+        role: 'system',
+        content: `You are an expert educator creating rich, engaging learning content. Expand the given concept with:
+        
+        - Enhanced definitions with clear explanations
+        - Practical analogies that make abstract concepts concrete
+        - Real-world examples and applications
+        - Connections to related concepts
+        - Bite-sized learning chunks (micro-lessons)
+        
+        Make the content engaging, memorable, and tailored for someone building their knowledge systematically.`
+      },
+      {
+        role: 'user',
+        content: `Expand this concept: ${JSON.stringify(concept)}
+        
+        Related concepts in this learning session: ${allConcepts.map(c => c.name).join(', ')}`
+      }
+    ];
+
+    const schema = {
+      type: 'object',
+      properties: {
+        enhanced_definition: { type: 'string' },
+        analogies: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              description: { type: 'string' },
+              connection: { type: 'string' }
+            },
+            required: ['title', 'description', 'connection']
+          }
+        },
+        examples: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              description: { type: 'string' },
+              context: { type: 'string' }
+            },
+            required: ['title', 'description', 'context']
+          }
+        },
+        connections: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              concept_name: { type: 'string' },
+              relationship: { type: 'string' },
+              explanation: { type: 'string' }
+            },
+            required: ['concept_name', 'relationship', 'explanation']
+          }
+        },
+        learning_chunks: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              content: { type: 'string' },
+              type: { type: 'string', enum: ['explanation', 'example', 'analogy', 'connection'] },
+              estimated_duration: { type: 'string' }
+            },
+            required: ['title', 'content', 'type']
+          }
+        }
+      },
+      required: ['enhanced_definition', 'analogies', 'examples', 'connections', 'learning_chunks']
+    };
+
+    return await this.generateStructuredResponse(messages, schema);
+  }
 }
 
 module.exports = OpenAIClient;

@@ -9,10 +9,12 @@ const KnowledgeReinforcer = require('../modules/knowledge-reinforcer');
 const ExplorationSuggester = require('../modules/exploration-suggester');
 const ConnectionMapper = require('../modules/connection-mapper');
 const ReflectionEngine = require('../modules/reflection-engine');
+const ConceptReviewer = require('../modules/concept-reviewer');
+const ReinforcementEngine = require('../modules/reinforcement-engine');
 const OpenAIClient = require('../modules/openai-client');
 
 class WebServer {
-  constructor(port = 3000) {
+  constructor(port = process.env.PORT || 3000) {
     this.port = port;
     this.app = express();
     this.server = http.createServer(this.app);
@@ -27,6 +29,8 @@ class WebServer {
     this.explorationSuggester = null;
     this.connectionMapper = null;
     this.reflectionEngine = null;
+    this.conceptReviewer = null;
+    this.reinforcementEngine = null;
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -48,6 +52,8 @@ class WebServer {
       this.explorationSuggester = new ExplorationSuggester(this.openai, this.knowledgeGraph);
       this.connectionMapper = new ConnectionMapper(this.openai, this.knowledgeGraph);
       this.reflectionEngine = new ReflectionEngine(this.openai, this.knowledgeGraph);
+      this.conceptReviewer = new ConceptReviewer(this.openai, this.knowledgeGraph);
+      this.reinforcementEngine = new ReinforcementEngine(this.openai, this.knowledgeGraph);
       
       // Initialize content processor browser
       await this.contentProcessor.initialize();
@@ -108,8 +114,23 @@ class WebServer {
           return res.status(400).json({ error: 'Content is required' });
         }
 
+        // Process content and trigger concept review
         const result = await this.contentProcessor.processContent(content);
-        res.json(result);
+        
+        // Automatically start concept review for new content
+        const conceptReviewResult = await this.conceptReviewer.processContentForReview(content);
+        
+        // Emit to all connected clients that new content is ready for review
+        this.io.emit('new-content-ready', {
+          content: content,
+          conceptReview: conceptReviewResult,
+          message: `New content processed: "${content.title || 'Untitled'}" with ${conceptReviewResult.concepts.length} concepts ready for review`
+        });
+        
+        res.json({
+          ...result,
+          conceptReview: conceptReviewResult
+        });
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
@@ -175,6 +196,128 @@ class WebServer {
       try {
         const patterns = await this.reflectionEngine.identifyLearningPatterns();
         res.json(patterns);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Phase 1: Concept Review & Expansion APIs
+    this.app.post('/api/concept-review/start', async (req, res) => {
+      try {
+        const { content } = req.body;
+        if (!content) {
+          return res.status(400).json({ error: 'Content is required' });
+        }
+
+        const result = await this.conceptReviewer.processContentForReview(content);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/concept-review/curate', async (req, res) => {
+      try {
+        const { sessionId, cardActions } = req.body;
+        if (!sessionId || !cardActions) {
+          return res.status(400).json({ error: 'Session ID and card actions are required' });
+        }
+
+        const result = await this.conceptReviewer.processUserCuration(sessionId, cardActions);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/concept-review/expand', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+        if (!sessionId) {
+          return res.status(400).json({ error: 'Session ID is required' });
+        }
+
+        const result = await this.conceptReviewer.expandCuratedConcepts(sessionId);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/concept-review/integrate', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+        if (!sessionId) {
+          return res.status(400).json({ error: 'Session ID is required' });
+        }
+
+        const result = await this.conceptReviewer.integrateConceptsToGraph(sessionId);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/concept-review/schedule', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+        if (!sessionId) {
+          return res.status(400).json({ error: 'Session ID is required' });
+        }
+
+        const result = await this.conceptReviewer.scheduleForReinforcement(sessionId);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Phase 2: Reinforcement APIs
+    this.app.post('/api/reinforcement/start', async (req, res) => {
+      try {
+        const session = await this.reinforcementEngine.generateReinforcementSession();
+        res.json(session);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/reinforcement/answer', async (req, res) => {
+      try {
+        const { sessionId, questionId, answer } = req.body;
+        if (!sessionId || !questionId || !answer) {
+          return res.status(400).json({ error: 'Session ID, question ID, and answer are required' });
+        }
+
+        const result = await this.reinforcementEngine.processUserAnswer(sessionId, questionId, answer);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/reinforcement/complete', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+        if (!sessionId) {
+          return res.status(400).json({ error: 'Session ID is required' });
+        }
+
+        const result = await this.reinforcementEngine.completeReinforcementSession(sessionId);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.get('/api/reinforcement/ready', async (req, res) => {
+      try {
+        const concepts = await this.reinforcementEngine.getConceptsForReinforcement();
+        res.json({ 
+          ready: concepts.length > 0,
+          count: concepts.length,
+          concepts: concepts.map(c => ({ name: c.name, confidence: c.confidence }))
+        });
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
@@ -252,6 +395,15 @@ class WebServer {
 
       socket.on('disconnect', () => {
         console.log('👤 User disconnected:', socket.id);
+      });
+
+      // Handle new content ready notifications
+      socket.on('new-content-ready', (data) => {
+        console.log('📚 New content ready for review:', data.message);
+        this.emitActivity(data.message, 'Content Processor', 'completed', {
+          concepts_count: data.conceptReview.concepts.length,
+          content_title: data.content.title
+        });
       });
     });
   }

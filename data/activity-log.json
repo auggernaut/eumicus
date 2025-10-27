@@ -254,7 +254,114 @@
         "connections_made": 5,
         "goals_assessed": 2
       }
+    },
+    {
+      "timestamp": "2025-10-21T21:00:21.534Z",
+      "type": "concept_review",
+      "agent": "Concept Reviewer",
+      "message": "Starting concept review session",
+      "status": "in_progress",
+      "details": {
+        "content_type": "object"
+      }
+    },
+    {
+      "timestamp": "2025-10-21T21:00:29.918Z",
+      "type": "concept_review",
+      "agent": "Concept Reviewer",
+      "message": "Generated 3 concept cards for review",
+      "status": "completed",
+      "details": {
+        "concepts_extracted": 3,
+        "cards_created": 3
+      }
+    },
+    {
+      "timestamp": "2025-10-22T03:00:16.660Z",
+      "type": "connection_mapping",
+      "agent": "Connection Mapper",
+      "message": "Analyzing existing knowledge for hidden connections",
+      "status": "in_progress"
+    },
+    {
+      "timestamp": "2025-10-22T03:01:06.946Z",
+      "type": "connection_mapping",
+      "agent": "Connection Mapper",
+      "message": "Discovered 25 hidden connections",
+      "status": "completed",
+      "details": {
+        "total_concepts_analyzed": 13,
+        "new_connections_found": 25
+      }
+    },
+    {
+      "timestamp": "2025-10-22T09:14:18.704Z",
+      "type": "connection_mapping",
+      "agent": "Connection Mapper",
+      "message": "Analyzing existing knowledge for hidden connections",
+      "status": "in_progress"
+    },
+    {
+      "timestamp": "2025-10-22T09:30:17.348Z",
+      "type": "connection_mapping",
+      "agent": "Connection Mapper",
+      "message": "Discovered 0 hidden connections",
+      "status": "completed",
+      "details": {
+        "total_concepts_analyzed": 13,
+        "new_connections_found": 0
+      }
+    },
+    {
+      "timestamp": "2025-10-27T20:15:31.654Z",
+      "type": "content_processing",
+      "agent": "Content Processor",
+      "message": "Starting content analysis",
+      "status": "in_progress",
+      "details": {
+        "input_type": "string"
+      }
+    },
+    {
+      "timestamp": "2025-10-27T20:15:44.962Z",
+      "type": "content_processing",
+      "agent": "Content Processor",
+      "message": "Successfully processed youtube_video: \"The OpenAI Internet Browser Has Arrived: ChatGPT Atlas w/ Dave Blundin & Alexander Wissner-Gross\"",
+      "status": "completed",
+      "details": {
+        "content_id": "content_1761596144958",
+        "concepts_extracted": 3,
+        "insights_generated": 2
+      }
+    },
+    {
+      "timestamp": "2025-10-27T20:15:44.963Z",
+      "type": "connection_mapping",
+      "agent": "Connection Mapper",
+      "message": "Analyzing connections for 3 new concepts",
+      "status": "in_progress"
+    },
+    {
+      "timestamp": "2025-10-27T20:16:25.229Z",
+      "type": "connection_mapping",
+      "agent": "Connection Mapper",
+      "message": "Mapped 29 connections between concepts",
+      "status": "completed",
+      "details": {
+        "new_concepts": 3,
+        "connections_found": 29,
+        "connection_types": [
+          "application",
+          "integration",
+          "prerequisite",
+          "tool",
+          "example",
+          "indirect connection",
+          "similar technology",
+          "potential integration"
+        ]
+      }
     }
   ],
-  "last_updated": "2025-10-21T19:29:27.162Z"
+  "last_updated": "2025-10-27T20:16:25.229Z"
 }

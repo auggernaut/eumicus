@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 const { program } = require('commander');
 const chalk = require('chalk');
 const ora = require('ora');
@@ -465,3 +468,4 @@ if (require.main === module) {
 }
 
 module.exports = EumicusCLI;
+

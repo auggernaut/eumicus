@@ -1,3 +1,6 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
 const WebServer = require('./web-server');
 const LearningPipeline = require('./learning-pipeline');
 const { program } = require('commander');
@@ -378,3 +381,4 @@ if (require.main === module) {
 }
 
 module.exports = EumicusApp;
+

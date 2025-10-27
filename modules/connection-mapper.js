@@ -390,3 +390,4 @@ class ConnectionMapper {
 }
 
 module.exports = ConnectionMapper;
+
